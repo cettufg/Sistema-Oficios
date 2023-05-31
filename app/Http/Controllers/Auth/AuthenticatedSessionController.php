@@ -34,12 +34,17 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if(auth()->user()->password_reset){
+        if(auth()->user()->status == 0) {
+            Auth::logout();
+            return redirect()->back()->with('status', 'Entre em contato com o administrador para ativar o seu usuário!');
+        }
+
+        if(auth()->user()->password_reset) {
             return redirect()->intended(route('profile.edit'));
-        }else{
+        } else {
             return redirect()->intended(RouteServiceProvider::HOME);
         }
-        
+
     }
 
     /**

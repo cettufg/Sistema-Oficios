@@ -1,23 +1,23 @@
 <template>
-    <button
-        :type="props.type"
+    <Link
+        :href="props.href"
         class="tw-flex tw-gap-2 tw-items-center tw-font-semibold tw-transition tw-ease-in-out tw-duration-150"
         :class="background + ' ' + rounded"
     >
         <span v-if="props.text" :class="fontSize">{{ props.text }}</span>
         <Icon v-if="props.icon" :class="iconSize" :icon="props.icon" />
         <slot />
-    </button>
+    </Link>
 </template>
-
 <script setup>
+import { Link } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import { computed } from 'vue';
 
 const props = defineProps({
-    type: {
+    href: {
         type: String,
-        default: 'submit',
+        default: '',
     },
     background: {
         type: String,
@@ -131,27 +131,27 @@ const background = computed(() => {
     }else if(props.background == 'positive' && props.outlined == false){
         return 'tw-text-white tw-bg-positive hover:tw-bg-positive_hover focus:tw-bg-positive_hover active:tw-bg-positive_hover';
     }else if(props.background == 'positive' && props.outlined == true){
-        return 'tw-text-positive tw-border tw-border-positive hover:tw-bg-positive_hover focus:tw-bg-positive_hover active:tw-bg-positive_hover hover:tw-text-positive focus:tw-text-white active:tw-text-white';
+        return 'tw-text-positive tw-border tw-border-positive hover:tw-bg-positive_hover focus:tw-bg-positive_hover active:tw-bg-positive_hover hover:tw-text-positive focus:tw-text-positive active:tw-text-positive';
     }else if(props.background == 'negative' && props.outlined == false){
         return 'tw-text-white tw-bg-negative hover:tw-bg-negative_hover focus:tw-bg-negative_hover active:tw-bg-negative_hover';
     }else if(props.background == 'negative' && props.outlined == true){
-        return 'tw-text-negative tw-border tw-border-negative hover:tw-bg-negative_hover focus:tw-bg-negative_hover active:tw-bg-negative_hover hover:tw-text-negative focus:tw-text-white active:tw-text-white';
+        return 'tw-text-negative tw-border tw-border-negative hover:tw-bg-negative_hover focus:tw-bg-negative_hover active:tw-bg-negative_hover hover:tw-text-negative focus:tw-text-negative active:tw-text-negative';
     }else if(props.background == 'info' && props.outlined == false){
         return 'tw-text-white tw-bg-info hover:tw-bg-info_hover focus:tw-bg-info_hover active:tw-bg-info_hover';
     }else if(props.background == 'info' && props.outlined == true){
-        return 'tw-text-info tw-border tw-border-info hover:tw-bg-info_hover focus:tw-bg-info_hover active:tw-bg-info_hover hover:tw-text-white focus:tw-text-info active:tw-text-white';
+        return 'tw-text-info tw-border tw-border-info hover:tw-bg-info_hover focus:tw-bg-info_hover active:tw-bg-info_hover hover:tw-text-info focus:tw-text-info active:tw-text-info';
     }else if(props.background == 'warning' && props.outlined == false){
         return 'tw-text-white tw-bg-warning hover:tw-bg-warning_hover focus:tw-bg-warning_hover active:tw-bg-warning_hover';
     }else if(props.background == 'warning' && props.outlined == true){
-        return 'tw-text-warning tw-border tw-border-warning hover:tw-bg-warning_hover focus:tw-bg-warning_hover active:tw-bg-warning_hover hover:tw-text-warning focus:tw-text-white active:tw-text-white';
+        return 'tw-text-warning tw-border tw-border-warning hover:tw-bg-warning_hover focus:tw-bg-warning_hover active:tw-bg-warning_hover hover:tw-text-warning focus:tw-text-warning active:tw-text-warning';
     }else if(props.background == 'primary' && props.outlined == false){
         return 'tw-text-white tw-bg-primary hover:tw-bg-primary_hover focus:tw-bg-primary_hover active:tw-bg-primary_hover';
     }else if(props.background == 'primary' && props.outlined == true){
-        return 'tw-text-primary tw-border tw-border-primary hover:tw-bg-primary_hover focus:tw-bg-primary_hover active:tw-bg-primary_hover hover:tw-text-primary focus:tw-text-white active:tw-text-white';
+        return 'tw-text-primary tw-border tw-border-primary hover:tw-bg-primary_hover focus:tw-bg-primary_hover active:tw-bg-primary_hover hover:tw-text-primary focus:tw-text-primary active:tw-text-primary';
     }else if(props.background == 'secondary' && props.outlined == false){
         return 'tw-text-white tw-bg-secondary hover:tw-bg-secondary_hover focus:tw-bg-secondary_hover active:tw-bg-secondary_hover';
     }else if(props.background == 'secondary' && props.outlined == true){
-        return 'tw-text-secondary tw-border tw-border-secondary hover:tw-bg-secondary_hover focus:tw-bg-secondary_hover active:tw-bg-secondary_hover hover:tw-text-secondary focus:tw-text-white active:tw-text-white';
+        return 'tw-text-secondary tw-border tw-border-secondary hover:tw-bg-secondary_hover focus:tw-bg-secondary_hover active:tw-bg-secondary_hover hover:tw-text-secondary focus:tw-text-secondary active:tw-text-secondary';
     }
 });
 </script>

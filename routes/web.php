@@ -62,14 +62,10 @@ Route::group([
         'prefix' => '/destinatario',
     ], function () {
         Route::get('/', [DestinatarioController::class, 'index'])->name('destinatario.index');
-        Route::get('/create', [DestinatarioController::class, 'create'])->name('destinatario.create');
-        Route::post('/create', [DestinatarioController::class, 'store'])->name('destinatario.store');
-
-        Route::get('/edit/{id}', [DestinatarioController::class, 'edit'])->name('destinatario.edit');
-        Route::put('/edit/{id}', [DestinatarioController::class, 'update'])->name('destinatario.update');
-
-        Route::delete('/', [DestinatarioController::class, 'destroy'])->name('destinatario.destroy');
-        Route::delete('/selected', [DestinatarioController::class, 'destroyselected'])->name('destinatario.destroyselected');
+        Route::post('/', [DestinatarioController::class, 'store'])->name('destinatario.store');
+        Route::put('/{id}', [DestinatarioController::class, 'update'])->name('destinatario.update');
+        Route::delete('/{id}', [DestinatarioController::class, 'destroy'])->name('destinatario.destroy');
+        Route::post('/selected', [DestinatarioController::class, 'destroySelected'])->name('destinatario.destroySelected');
     });
 
     //Route group usuários

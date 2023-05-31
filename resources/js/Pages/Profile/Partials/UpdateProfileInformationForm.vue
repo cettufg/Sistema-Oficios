@@ -1,11 +1,7 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import axios from 'axios';
 
 const props = defineProps({
     mustVerifyEmail: Boolean,
@@ -44,9 +40,9 @@ const form = useForm({
                     required
                     autofocus
                     autocomplete="name"
+                    :error="!!form.errors.name"
+                    :error-message="form.errors.name"
                 />
-
-                <InputError class="tw-mt-2" :message="form.errors.name" />
             </div>
 
             <div>
@@ -60,9 +56,10 @@ const form = useForm({
                     v-model="form.email"
                     required
                     autocomplete="username"
+                    :error="!!form.errors.email"
+                    :error-message="form.errors.email"
                 />
 
-                <InputError class="tw-mt-2" :message="form.errors.email" />
             </div>
 
             <div v-if="props.mustVerifyEmail && user.email_verified_at === null">
@@ -87,7 +84,14 @@ const form = useForm({
             </div>
 
             <div class="tw-flex tw-items-center tw-gap-4">
-                <PrimaryButton :disabled="form.processing">Salvar</PrimaryButton>
+                <PrimaryButton
+                    type="submit"
+                    class="tw-px-4 tw-py-3"
+                    background="positive"
+                    text="Salvar"
+                    :disabled="form.processing"
+                    icon="ic:round-save"
+                />
 
                 <Transition enter-from-class="tw-opacity-0" leave-to-class="tw-opacity-0" class="tw-transition tw-ease-in-out">
                     <p v-if="form.recentlySuccessful" class="tw-text-sm tw-text-gray-600">Salvo.</p>

@@ -23,7 +23,13 @@ createInertiaApp({
             .use(Quasar, {
                 plugins: {
                     Notify
-                }
+                },
+                config: {
+                    notify: {
+                        position: 'top-right',
+                        timeout: 1000,
+                    },
+                },
             })
             .mount(el);
     },

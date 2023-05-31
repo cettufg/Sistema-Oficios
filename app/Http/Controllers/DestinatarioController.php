@@ -4,109 +4,72 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Destinatario;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class DestinatarioController extends Controller
 {
     public function index()
     {
-        $destinatarios = Destinatario::all('id', 'nome', 'status');
-        
+        $destinatarios = Destinatario::all();
+
         return Inertia::render('Destinatario/Index', [
             'destinatarios' => $destinatarios
         ]);
     }
 
-    public function create()
-    {
-        return Inertia::render('Destinatario/Create');
-    }
-
     public function store(Request $request)
     {
-        $dados = $request->all();
-
-        $request->validate(
-        [
-            'nome' => ['string', 'required'],
-            'status' => ['string', 'required']
+        $request->validate([
+            'nome' => 'required',
+            'status' => 'required'
         ]);
-        
+
         //Cadastra os dados
         $destinatario = Destinatario::create([
-            'nome' => $dados['nome'],
-            'status' => $dados['status'],
+            'nome' => $request->input('nome'),
+            'status' => $request->input('status.value'),
             'user_created' => auth()->user()->id
         ]);
 
-        return Redirect::route('destinatario.index');
+        return redirect()->back()->with('respone', $destinatario);
     }
 
     public function update(Request $request, $id)
     {
-        $dados = $request->all();
-        
-        $request->validate(
-        [
-            'nome' => ['string', 'required'],
-            'status' => ['string', 'required']
+        $request->validate([
+            'nome' => 'required',
+            'status' => 'required'
         ]);
 
-        
         //Cadastra os dados
-        $destinatario = Destinatario::find($id)->fill([
-            'nome' => $dados['nome'],
-            'status' => $dados['status'],
-            'user_updated' => auth()->user()->id
-        ])->save();
-
-        return Redirect::route('destinatario.index');
-    }
-
-    public function edit($id)
-    {
         $destinatario = Destinatario::find($id);
-        
-        return Inertia::render('Destinatario/Edit', [
-            'destinatario' => $destinatario,
-        ]);
+        $destinatario->nome = $request->input('nome');
+        $destinatario->status = $request->input('status.value');
+        $destinatario->user_updated = auth()->user()->id;
+        $destinatario->save();
+
+        return redirect()->back()->with('respone', $destinatario);
     }
 
-    public function destroy(Request $request)
-    {    
-        $dados = $request->all();
-        
-        if($dados['id']){
-            $destinatario = Destinatario::findOrFail($dados['id']);
-            $destinatario->delete();
-        }
+    public function destroy($id)
+    {
+        $destinatario = Destinatario::findOrFail($id);
+        $destinatario->delete();
 
-        $destinatarios = Destinatario::all('id', 'nome', 'status');
+        return redirect()->back()->with('respone', $destinatario);
 
-        return Redirect::back()->with([
-            'response' => $destinatarios
-        ]);
-        
     }
 
 
-    public function destroyselected(Request $request)
-    {    
-        $dados = $request->all();
-
-        if(count($dados) > 0){
-            foreach($dados as $destinatario){
-                if($destinatario['id']){
-                    $destinatarioDelete = Destinatario::findOrFail($destinatario['id']);
-                    $destinatarioDelete->delete();
-                }
-            }
+    public function destroySelected(Request $request)
+    {
+        foreach($request->selected as $destinatario){
+            $destinatarioDelete = Destinatario::findOrFail($destinatario['id']);
+            $destinatarioDelete->delete();
         }
-        
-        $destinatarios = Destinatario::all('id', 'nome', 'status');
 
-        return $destinatarios;
-        
+        $destinatarios = Destinatario::all();
+
+        return redirect()->back()->with('respone', $destinatarios);
     }
 }

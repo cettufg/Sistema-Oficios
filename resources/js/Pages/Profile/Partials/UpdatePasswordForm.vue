@@ -1,10 +1,9 @@
 <script setup>
-import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { Notify } from 'quasar';
 
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
@@ -18,7 +17,13 @@ const form = useForm({
 const updatePassword = () => {
     form.put(route('password.update'), {
         preserveScroll: true,
-        onSuccess: () => form.reset(),
+        onSuccess: () => {
+            form.reset();
+            Notify.create({
+                message: 'Senha atualizada com sucesso!',
+                type: 'positive',
+            })
+        },
         onError: () => {
             if (form.errors.password) {
                 form.reset('password', 'password_confirmation');
@@ -28,6 +33,10 @@ const updatePassword = () => {
                 form.reset('current_password');
                 currentPasswordInput.value.focus();
             }
+            Notify.create({
+                message: 'Erro ao atualizar sua senha!',
+                type: 'negative',
+            })
         },
     });
 };
@@ -55,9 +64,9 @@ const updatePassword = () => {
                     type="password"
                     class="tw-mt-1 tw-block tw-w-full"
                     autocomplete="current-password"
+                    :error-message="form.errors.current_password"
+                    :error="!!form.errors.current_password"
                 />
-
-                <InputError :message="form.errors.current_password" class="tw-mt-2" />
             </div>
 
             <div>
@@ -71,9 +80,9 @@ const updatePassword = () => {
                     type="password"
                     class="tw-mt-1 tw-block tw-w-full"
                     autocomplete="new-password"
+                    :error-message="form.errors.password"
+                    :error="!!form.errors.password"
                 />
-
-                <InputError :message="form.errors.password" class="tw-mt-2" />
             </div>
 
             <div>
@@ -86,13 +95,20 @@ const updatePassword = () => {
                     type="password"
                     class="tw-mt-1 tw-block tw-w-full"
                     autocomplete="new-password"
+                    :error-message="form.errors.password_confirmation"
+                    :error="!!form.errors.password_confirmation"
                 />
-
-                <InputError :message="form.errors.password_confirmation" class="tw-mt-2" />
             </div>
 
             <div class="tw-flex tw-items-center tw-gap-4">
-                <PrimaryButton :disabled="form.processing">Salvar</PrimaryButton>
+                <PrimaryButton
+                    type="submit"
+                    class="tw-px-4 tw-py-3"
+                    background="positive"
+                    text="Salvar"
+                    :disabled="form.processing"
+                    icon="ic:round-save"
+                />
 
                 <Transition enter-from-class="tw-opacity-0" leave-to-class="tw-opacity-0" class="tw-transition tw-ease-in-out">
                     <p v-if="form.recentlySuccessful" class="tw-text-sm tw-text-gray-600">Salvo.</p>
