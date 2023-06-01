@@ -22,7 +22,7 @@
                                     <button type="button" class="tw-flex tw-items-center tw-gap-2 focus:tw-outline-none tw-transition tw-ease-in-out tw-duration-150">
                                         <Icon class="tw-text-2xl" icon="iconoir:verified-user" />
                                         <span>{{ $page.props.auth.user.name }}</span>
-                                        <Icon class="tw-text-xl" icon="ep:arrow-down-bold" />
+                                        <Icon class="tw-text-md" icon="ep:arrow-down-bold" />
                                     </button>
                                 </span>
                             </template>
