@@ -12,117 +12,73 @@ class DiretoriaController extends Controller
 {
     public function index()
     {
-        $diretores = Diretoria::all('id','group_id', 'nome', 'status');
-        $grupos = GroupUsers::select('id', 'nome', 'descricao')->where('status', 'Ativo')->get();
-        
-        return Inertia::render('Diretoria/Index', [
-            'diretores' => $diretores,
-            'grupos' => $grupos
-        ]);
-    }
+        $diretorias = Diretoria::all();
 
-    public function create()
-    {
-        $grupos = GroupUsers::select('id', 'nome', 'descricao')->where('status', 'Ativo')->get();
-        return Inertia::render('Diretoria/Create', [
-            'grupos' => $grupos,
+        return Inertia::render('Diretoria/Index', [
+            'diretorias' => $diretorias,
         ]);
     }
 
     public function store(Request $request)
     {
-        $dados = $request->all();
-
-        $request->validate(
-        [
-            'group_id' => ['required'],
-            'nome' => ['string', 'required'],
-            'status' => ['string', 'required']
-        ],[
+        $request->validate([
+            'nome' => 'required',
+            'status' => 'required'
+        ], [
             '*.required' => 'Campo obrigatório.'
         ]);
-        
+
         //Cadastra os dados
         $diretoria = Diretoria::create([
-            'group_id' => $dados['group_id']['id'],
-            'nome' => $dados['nome'],
-            'status' => $dados['status'],
+            'group_id' => 1,
+            'nome' => $request->input('nome'),
+            'status' => $request->input('status.value'),
             'user_created' => auth()->user()->id
         ]);
 
-        return Redirect::route('diretoria.index');
+        return redirect()->back()->with('response', $diretoria);
     }
 
     public function update(Request $request, $id)
     {
-        $dados = $request->all();
-        
-        $request->validate(
-        [
-            'group_id' => ['required'],
-            'nome' => ['string', 'required'],
-            'status' => ['string', 'required']
-        ],[
+        $request->validate([
+            'nome' => 'required',
+            'status' => 'required'
+        ], [
             '*.required' => 'Campo obrigatório.'
         ]);
 
-        
-        //Cadastra os dados
-        $diretoria = Diretoria::find($id)->fill([
-            'group_id' => $dados['group_id']['id'],
-            'nome' => $dados['nome'],
-            'status' => $dados['status'],
-            'user_updated' => auth()->user()->id
-        ])->save();
 
-        return Redirect::route('diretoria.index');
-    }
+        //Atualiza os dados
+        $diretoria = Diretoria::findOrFail($id);
+        $diretoria->nome = $request->input('nome');
+        $diretoria->status = $request->input('status.value');
+        $diretoria->user_updated = auth()->user()->id;
+        $diretoria->save();
 
-    public function edit($id)
-    {
-        $diretoria = Diretoria::find($id);
-        $grupos = GroupUsers::select('id', 'nome', 'descricao')->where('status', 'Ativo')->get();
-        
-        return Inertia::render('Diretoria/Edit', [
-            'diretoria' => $diretoria,
-            'grupos' => $grupos,
-        ]);
+        return redirect()->back()->with('response', $diretoria);
     }
 
     public function destroy(Request $request)
-    {    
-        $dados = $request->all();
-        
-        if($dados['id']){
-            $diretoria = Diretoria::findOrFail($dados['id']);
-            $diretoria->delete();
-        }
+    {
+        $diretoria = Diretoria::findOrFail($request->id);
+        $diretoria->delete();
 
-        $diretorias = Diretoria::all('id', 'group_id', 'nome', 'status');
+        return redirect()->back()->with('response', $diretoria);
 
-        return Redirect::back()->with([
-            'response' => $diretorias
-        ]);
-        
     }
 
 
-    public function destroyselected(Request $request)
-    {    
-        $dados = $request->all();
-
-        if(count($dados) > 0){
-            foreach($dados as $diretoria){
-                if($diretoria['id']){
-                    $diretoriaDelete = Diretoria::findOrFail($diretoria['id']);
-                    $diretoriaDelete->delete();
-                }
-            }
+    public function destroySelected(Request $request)
+    {
+        foreach($request->selected as $diretoria) {
+            $diretoriaDelete = Diretoria::findOrFail($diretoria['id']);
+            $diretoriaDelete->delete();
         }
-        
-        $diretorias = Diretoria::all('id', 'group_id', 'nome', 'status');
 
-        return $diretorias;
-        
+        $diretorias = Diretoria::all();
+
+        return redirect()->back()->with('respone', $diretorias);
+
     }
 }

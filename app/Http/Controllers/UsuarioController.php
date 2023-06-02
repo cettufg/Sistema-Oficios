@@ -11,24 +11,25 @@ class UsuarioController extends Controller
 {
     public function index()
     {
-        $usuaros = User::select('id', 'name', 'email', 'is_admin', 'status', 'password_reset')->get();
+        $usuarios = User::all();
+
         return Inertia::render('Usuario/Index', [
-            'usuarios' => $usuaros,
+            'usuarios' => $usuarios,
         ]);
     }
 
     public function update(Request $request, $id)
     {
-
         $request->validate([
             'name' => 'required',
             'email' => 'required',
             'is_admin.value' => 'nullable',
-            'status.value' => 'required',
-            'password_reset.value' => 'required',
+            'status' => 'required',
+            'password_reset' => 'required',
         ]);
 
         $usuario = User::find($id);
+
         $usuario->name = $request->input('name');
         $usuario->email = $request->input('email');
         $usuario->is_admin = $request->input('is_admin.value');
@@ -46,7 +47,9 @@ class UsuarioController extends Controller
     public function destroy($id)
     {
         $usuario = User::find($id);
+
         $usuario->delete();
+
         return redirect()->back()->with('response', $usuario);
     }
 }

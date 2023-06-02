@@ -3,75 +3,106 @@
 
     <AuthenticatedLayout>
         <div class="tw-py-12 md:tw-mx-20">
-            <div class="">
-                <div class="tw-overflow-hidden">
-                    <div class="tw-flex tw-justify-between tw-mx-4">
-                        <span class="tw-text-3xl">Usuários</span>
-                    </div>
-                    <div class="q-pa-md">
-                        <q-table
-                            :rows="props.usuarios"
-                            :columns="columns"
-                            row-key="id"
-                            :pagination="initialPagination"
-                            :filter="filter"
-                            no-data-label="Sem dados cadastrados"
-                            no-results-label="A sua pesquisa não retornou dados"
-                        >
-
-                            <template v-slot:body-cell="props">
-                                <q-td :props="props">
-                                    <div v-if="props.col.name == 'status'">
-                                        <q-chip :label="props.value == 1 ? 'Ativo' : 'Inativo'" text-color="white" :color="props.value == 1 ? 'green' : 'red'" />
-                                    </div>
-                                    <div v-else-if="props.col.name == 'actions'">
-                                        <div class="tw-inline-flex tw-items-center tw-rounded-md tw-shadow-sm">
-                                            <button @click="openModalAction(1, props.row)" class="tw-text-slate-800 hover:tw-text-green-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border tw-border-slate-200 tw-rounded-l-lg tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center">
-                                                <Icon icon="tabler:edit" />
-                                            </button>
-                                            <button @click="openModalAction(2, props.row)" class="tw-text-slate-800 hover:tw-text-red-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border tw-border-slate-200 tw-rounded-r-lg tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center">
-                                                <Icon icon="uil:trash" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div v-else>
-                                        {{props.value}}
-                                    </div>
-
-                                </q-td>
-                            </template>
-
-                            <template v-slot:top-right>
-                                <q-input v-model="filter" outlined type="search" placeholder="Pesquisar">
-                                    <template v-slot:append>
-                                        <q-icon name="search" />
-                                    </template>
-                                </q-input>
-                            </template>
-
-                            <template v-slot:no-data="{ icon, message, filter }">
-                                <div class="tw-w-full tw-flex tw-justify-center tw-items-center">
-                                    <span>
-                                        {{ message }}
-                                    </span>
-                                    <q-icon size="2em" name="sentiment_dissatisfied" />
-                                </div>
-                            </template>
-                        </q-table>
-                    </div>
-                </div>
+            <div class="tw-flex tw-justify-between tw-mb-10">
+                <span class="tw-text-3xl">Usuários</span>
             </div>
-            <q-dialog
-                v-model="openModal"
+
+            <q-table
+                :rows="props.usuarios"
+                :columns="columns"
+                :pagination="initialPagination"
+                :filter="filter"
+                :visible-columns="visibleColumns"
+                no-data-label="Sem dados cadastrados"
+                no-results-label="A sua pesquisa não retornou dados"
             >
-                <q-card style="width: 1400px; max-width: 80vw;">
+
+                <template v-slot:body-cell="props">
+                    <q-td :props="props">
+                        <div v-if="props.col.name == 'status'">
+                            <span class="tw-text-white tw-rounded-2xl tw-p-2" :class="{
+                                'tw-bg-positive': props.row.status == 1,
+                                'tw-bg-negative': props.row.status == 2,
+                            }">
+                                {{ props.row.status == 1 ? 'Ativo' : 'Inativo' }}
+                            </span>
+                        </div>
+                        <div v-else-if="props.col.name == 'actions'">
+                            <div class="tw-flex tw-items-center tw-justify-center tw-gap-2">
+                                <PrimaryButton
+                                    @click="openModalAction(1, props.row)"
+                                    class="tw-p-2"
+                                    background="info"
+                                    icon="tabler:edit"
+                                />
+                                <PrimaryButton
+                                    v-if="$page.props.auth.user.is_admin == 1"
+                                    @click="openModalAction(2, props.row)"
+                                    class="tw-p-2"
+                                    background="negative"
+                                    icon="uil:trash"
+                                />
+                            </div>
+                        </div>
+                        <div v-else>
+                            {{props.value}}
+                        </div>
+
+                    </q-td>
+                </template>
+
+                <template v-slot:top-right>
+                    <div class="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 tw-gap-3">
+                        <q-input v-model="filter" outlined type="search" placeholder="Pesquisar">
+                            <template v-slot:append>
+                                <q-icon name="search" />
+                            </template>
+                        </q-input>
+                        <q-select
+                            v-model="visibleColumns"
+                            multiple
+                            outlined
+                            options-dense
+                            display-value="Selecionar colunas"
+                            emit-value
+                            map-options
+                            :options="columns"
+                            option-value="name"
+                            options-cover
+                        >
+                            <template v-slot:option="{ itemProps, opt, selected, toggleOption }">
+                                <q-item v-bind="itemProps">
+                                    <q-item-section>
+                                        <q-item-label v-html="opt.label" />
+                                    </q-item-section>
+                                    <q-item-section side>
+                                        <q-toggle :model-value="selected" @update:model-value="toggleOption(opt)" />
+                                    </q-item-section>
+                                </q-item>
+                            </template>
+                        </q-select>
+                    </div>
+                </template>
+
+                <template v-slot:no-data="{ icon, message, filter }">
+                    <div class="tw-w-full tw-flex tw-justify-center tw-items-center">
+                        <span>
+                            {{ message }}
+                        </span>
+                        <q-icon size="2em" name="sentiment_dissatisfied" />
+                    </div>
+                </template>
+            </q-table>
+
+            <q-dialog v-model="openModal">
+                <q-card style="width: 700px; max-width: 80vw;">
                     <q-card-section>
-                        <div class="text-h6">Editar usuário</div>
+                        <div class="tw-text-2xl">Editar usuário</div>
                     </q-card-section>
 
-                    <q-card-section class="">
-                        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-4 tw-gap-4">
-                            <div class="tw-col-span-2">
+                    <q-card-section>
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                            <div>
                                 <InputLabel required value="Nome" />
                                 <q-input
                                     v-model="form.name"
@@ -80,7 +111,7 @@
                                 />
                             </div>
 
-                            <div class="tw-col-span-2">
+                            <div>
                                 <InputLabel required value="E-mail" />
                                 <q-input
                                     v-model="form.email"
@@ -89,7 +120,7 @@
                                 />
                             </div>
 
-                            <div class="tw-col-span-2" v-if="$page.props.auth.user.is_admin">
+                            <div v-if="$page.props.auth.user.is_admin">
                                 <InputLabel value="Permissão de admin" />
                                 <q-select
                                     v-model="form.is_admin"
@@ -101,7 +132,7 @@
                                 />
                             </div>
 
-                            <div class="tw-col-span-2">
+                            <div>
                                 <InputLabel required value="Resetar senha" />
                                 <q-select
                                     v-model="form.password_reset"
@@ -113,29 +144,83 @@
                                 />
                             </div>
 
-                            <div class="tw-col-span-2">
+                            <div>
                                 <InputLabel required value="Status" />
                                 <q-select
                                     v-model="form.status"
                                     outlined
-                                    :options="[
-                                        { label: 'Ativo', value: 1 },
-                                        { label: 'Inativo', value: 0 },
-                                    ]"
+                                    :options="optionsStatus"
+                                    :error="!!form.errors.status"
+                                    :error-message="form.errors.status"
                                 />
                             </div>
                         </div>
+                        <div v-if="form.processing" class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
+                        </div>
                     </q-card-section>
 
-                    <q-card-actions align="left" class="tw-space-x-4">
-                        <button @click="saveData()" class="tw-flex tw-items-center tw-rounded-md tw-bg-green-500 tw-text-white tw-px-2 tw-py-1">
-                            <span class="tw-text-md">Salvar</span>
-                            <Icon class="tw-text-md tw-ml-1" icon="ic:round-save" />
-                        </button>
-                        <button class="tw-flex tw-items-center tw-rounded-md tw-bg-cyan-500 tw-text-white tw-px-2 tw-py-1" v-close-popup>
-                            <span class="tw-text-md">Cancelar</span>
-                            <Icon class="tw-text-md tw-ml-1" icon="material-symbols:cancel-outline" />
-                        </button>
+                    <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
+                        <PrimaryButton
+                            @click="saveData()"
+                            :disabled="form.processing"
+                            background="positive"
+                            class="tw-px-3 tw-py-2"
+                            text="Salvar"
+                            icon="ic:round-save"
+                        />
+                        <PrimaryButton
+                            v-close-popup
+                            :disabled="form.processing"
+                            background="info"
+                            class="tw-px-3 tw-py-2"
+                            text="Cancelar"
+                            icon="material-symbols:cancel-outline"
+                        />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
+            <q-dialog v-model="openModalDelete">
+                <q-card style="width: 700px; max-width: 80vw;">
+                    <q-card-section>
+                        <div class="tw-text-2xl">Deletar Dados</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                            <div>
+                                Você quer mesmo excluir esses dados?
+                            </div>
+                        </div>
+                        <div v-else class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
+                        </div>
+                    </q-card-section>
+
+                    <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
+                        <PrimaryButton
+                            @click="destroyData()"
+                            :disabled="form.processing"
+                            background="negative"
+                            class="tw-px-3 tw-py-2"
+                            text="Excluir"
+                            icon="uil:trash"
+                        />
+                        <PrimaryButton
+                            v-close-popup
+                            :disabled="form.processing"
+                            background="info"
+                            class="tw-px-3 tw-py-2"
+                            text="Cancelar"
+                            icon="material-symbols:cancel-outline"
+                        />
                     </q-card-actions>
                 </q-card>
             </q-dialog>
@@ -146,17 +231,16 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
-import Button from '@/Components/Button.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { Icon } from '@iconify/vue';
 import { Notify } from 'quasar';
 
 
 const props = defineProps({
     usuarios:{
-        default: '',
-        type: Object
+        type: Array,
+        default: []
     }
 })
 const filter = ref('')
@@ -173,7 +257,24 @@ const columns = [
   { name: 'status', label: 'Status', align: 'left', field: 'status', sortable: true },
   { name: 'actions', label: 'Ações', align: 'center', field: 'actions', sortable: true },
 ]
+const visibleColumns = ref([
+    'id',
+    'name',
+    'status',
+    'actions',
+]);
 const openModal = ref(false);
+const openModalDelete = ref(false);
+const optionsStatus = [
+    {
+        label: 'Ativo',
+        value: 1
+    },
+    {
+        label: 'Inativo',
+        value: 2
+    }
+]
 
 const form = useForm({
     id: '',
@@ -185,8 +286,7 @@ const form = useForm({
 });
 
 function openModalAction(type, data = []){
-    form.reset()
-
+    form.reset();
     if(type == 1){
         form.id = data.id;
         form.name = data.name;
@@ -215,19 +315,36 @@ function saveData(){
         preserveScroll: true,
         onSuccess: () => {
             openModal.value = false;
+            form.reset();
             Notify.create({
-                message: 'Usuário atualizado com sucesso!',
+                message: 'Dados atualizados com sucesso!',
                 type: 'positive',
-                position: 'top-right',
-                timeout: 2000
             })
         },
         onError: () => {
             Notify.create({
-                message: 'Erro ao atualizar usuário!',
+                message: 'Erro ao atualizar dados!',
                 type: 'negative',
-                position: 'top-right',
-                timeout: 2000
+            })
+        }
+    })
+}
+
+function destroyData(){
+    form.delete(route('usuario.destroy', form.id), {
+        preserveScroll: true,
+        onSuccess: () => {
+            openModalDelete.value = false;
+            form.reset();
+            Notify.create({
+                message: 'Dados excluídos com sucesso!',
+                type: 'positive',
+            })
+        },
+        onError: () => {
+            Notify.create({
+                message: 'Erro ao excluir dados!',
+                type: 'negative',
             })
         }
     })

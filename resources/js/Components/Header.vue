@@ -41,7 +41,7 @@
                 <button class="tw-block md:tw-hidden tw-mr-5" @click="activeMenu = !activeMenu">
                     <Icon icon="lucide:menu" class="tw-text-3xl" />
                 </button>
-                <img src="@/images/logo_ufg.png" alt="Logo UFG" class="tw-w-32">
+                <img src="@/images/logo_ufg.png" alt="Logo UFG" class="tw-w-24">
             </div>
         </div>
 

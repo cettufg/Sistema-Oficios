@@ -64,7 +64,7 @@
                 <template v-slot:top-left>
                     <PrimaryButton
                         v-if="$page.props.auth.user.is_admin == 1"
-                        @click="destroySelected(selected)"
+                        @click="openModalAction(4, selected)"
                         background="negative"
                         class="tw-p-2"
                         :disabled="selected.length == 0"
@@ -193,16 +193,63 @@
                     </q-card-section>
 
                     <q-card-section>
-                        <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
                             <div>
                                 Você quer mesmo excluir esses dados?
                             </div>
+                        </div>
+                        <div v-else class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
                         </div>
                     </q-card-section>
 
                     <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
                         <PrimaryButton
                             @click="destroyData()"
+                            :disabled="form.processing"
+                            background="negative"
+                            class="tw-px-3 tw-py-2"
+                            text="Excluir"
+                            icon="uil:trash"
+                        />
+                        <PrimaryButton
+                            v-close-popup
+                            :disabled="form.processing"
+                            background="info"
+                            class="tw-px-3 tw-py-2"
+                            text="Cancelar"
+                            icon="material-symbols:cancel-outline"
+                        />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
+            <q-dialog v-model="openModalDeleteAll">
+                <q-card style="width: 700px; max-width: 80vw;">
+                    <q-card-section>
+                        <div class="tw-text-2xl">Deletar Dados</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                            <div>
+                                Você quer mesmo excluir esses dados?
+                            </div>
+                        </div>
+                        <div v-else class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
+                        </div>
+                    </q-card-section>
+
+                    <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
+                        <PrimaryButton
+                            @click="destroySelected()"
                             :disabled="form.processing"
                             background="negative"
                             class="tw-px-3 tw-py-2"
@@ -271,6 +318,7 @@ const form = useForm({
 })
 const openModal = ref(false);
 const openModalDelete = ref(false);
+const openModalDeleteAll = ref(false);
 const typeAction = ref('');
 const optionsStatus = [
     {
@@ -300,6 +348,9 @@ function openModalAction(type, data = []){
     }else if(type == 3){
         form.id = data.id;
         openModalDelete.value = true;
+    }else if(type == 4){
+        form.selected = selected.value;
+        openModalDeleteAll.value = true;
     }
 }
 
@@ -364,11 +415,10 @@ function destroyData(){
 }
 
 function destroySelected(){
-    form.selected = selected.value;
     form.post(route('destinatario.destroySelected'), {
         preserveScroll: true,
         onSuccess: (response) => {
-            openModalDelete.value = false;
+            openModalDeleteAll.value = false;
             form.reset();
             Notify.create({
                 message: 'Dados excluídos com sucesso!',

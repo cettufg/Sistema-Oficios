@@ -68,28 +68,24 @@ Route::group([
         Route::post('/selected', [DestinatarioController::class, 'destroySelected'])->name('destinatario.destroySelected');
     });
 
-    //Route group usuários
-    Route::group([
-        'prefix' => '/usuarios',
-    ], function () {
-        Route::get('/', [UsuarioController::class, 'index'])->name('usuario.index');
-        Route::put('/update/{id}', [UsuarioController::class, 'update'])->name('usuario.update');
-        Route::post('/destroy/{id}', [UsuarioController::class, 'destroy'])->name('usuario.destroy');
-    });
-
     //Route group Diretoria
     Route::group([
         'prefix' => '/diretoria',
     ], function () {
         Route::get('/', [DiretoriaController::class, 'index'])->name('diretoria.index');
-        Route::get('/create', [DiretoriaController::class, 'create'])->name('diretoria.create');
-        Route::post('/create', [DiretoriaController::class, 'store'])->name('diretoria.store');
+        Route::post('/', [DiretoriaController::class, 'store'])->name('diretoria.store');
+        Route::put('/{id}', [DiretoriaController::class, 'update'])->name('diretoria.update');
+        Route::delete('/{id}', [DiretoriaController::class, 'destroy'])->name('diretoria.destroy');
+        Route::post('/selected', [DiretoriaController::class, 'destroySelected'])->name('diretoria.destroySelected');
+    });
 
-        Route::get('/edit/{id}', [DiretoriaController::class, 'edit'])->name('diretoria.edit');
-        Route::put('/edit/{id}', [DiretoriaController::class, 'update'])->name('diretoria.update');
-
-        Route::delete('/', [DiretoriaController::class, 'destroy'])->name('diretoria.destroy');
-        Route::delete('/selected', [DiretoriaController::class, 'destroyselected'])->name('diretoria.destroyselected');
+    //Route group usuários
+    Route::group([
+        'prefix' => '/usuarios',
+    ], function () {
+        Route::get('/', [UsuarioController::class, 'index'])->name('usuario.index');
+        Route::put('/{id}', [UsuarioController::class, 'update'])->name('usuario.update');
+        Route::delete('/{id}', [UsuarioController::class, 'destroy'])->name('usuario.destroy');
     });
 });
 
