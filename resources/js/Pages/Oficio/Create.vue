@@ -545,7 +545,6 @@ onMounted(() => {
     });
 
     props.destinatarios.map((item) => {
-        console.log(item);
         options_destinatario.value.push({
             label: item.nome,
             id: item.id

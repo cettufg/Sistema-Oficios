@@ -16,8 +16,13 @@ class ResponsavelOficio extends Model
         'oficio_id',
     ];
 
-    public function user(): HasOne
+    public function user()
     {
-        return $this->hasOne(User::class, 'user_id', 'id');
+        return $this->belongsTo(User::class);
+    }
+
+    public function oficio()
+    {
+        return $this->belongsTo(Oficio::class);
     }
 }

@@ -190,10 +190,8 @@
                             <q-td key="status_inicial" :props="props">
                                 {{ props.row.status_inicial }}
                             </q-td>
-                            <q-td key="responsaveis" :props="props">
-                                <div v-for="responsavel in props.row.responsaveis" class="tw-flex tw-flex-col tw-w-full tw-items-start tw-justify-start">
-                                    {{ responsavel }}
-                                </div>
+                            <q-td key="responsavel" :props="props">
+                                {{ props.row.responsavel }}
                             </q-td>
                             <q-td key="prazo" :props="props">
                                 {{ props.row.prazo }}
@@ -212,7 +210,7 @@
                                     <Link :href="route('oficio.detail', props.row.id)" class="tw-text-slate-800 hover:tw-text-blue-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border-y tw-border-slate-200 tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center">
                                         <Icon icon="mdi:eye-outline" />
                                     </Link>
-                                    <button @click="destroyItem(props.row)" v-if="props.row.user_created == usuario.id" class="tw-text-slate-800 hover:tw-text-red-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border tw-border-slate-200 tw-rounded-r-lg tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center">
+                                    <button @click="destroyItem(props.row)" v-if="props.row.user_created == $page.props.auth.user.id" class="tw-text-slate-800 hover:tw-text-red-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border tw-border-slate-200 tw-rounded-r-lg tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center">
                                         <Icon icon="uil:trash" />
                                     </button>
                                 </div>
@@ -291,22 +289,19 @@ import axios from 'axios';
 
 const props = defineProps({
     oficios:{
-        default: '',
+        default: [],
         type: Array
-    },
-    usuario: {
-        default: '',
-        type: Object
     }
 })
-const selected = ref([])
-const filter = ref('')
+const selected = ref([]);
+const filter = ref('');
+const rows = ref([]);
 const initialPagination = ref({
     sortBy: 'desc',
     descending: false,
     page: 1,
     rowsPerPage: 10
-})
+});
 const optionsFilters = ref({
     tipo_oficio: [],
     data: [],
@@ -324,6 +319,31 @@ const optionsFiltred = ref({
     prazo: optionsFilters.value.prazo,
 })
 const filterDataFormatted = ref('');
+const columns = [
+    { name: 'tipo_oficio', label: 'Tipo de ofício', align: 'left', field: 'tipo_oficio', sortable: true },
+    { name: 'data', label: 'Data', align: 'left', field: 'data', sortable: true },
+    { name: 'tipo_documento', label: 'Documento', align: 'left', field: 'tipo_documento', sortable: true },
+    { name: 'numero_oficio', label: 'Número', align: 'left', field: 'numero_oficio', sortable: true },
+    { name: 'destinatario', label: 'Origem', align: 'left', field: 'destinatario', sortable: true },
+    { name: 'status_inicial', label: 'Status Inicial', align: 'left', field: 'status_inicial', sortable: true },
+    { name: 'responsavel', label: 'Responsavel', align: 'left', field: 'responsavel', sortable: true },
+    { name: 'prazo', label: 'Prazo', align: 'left', field: 'prazo', sortable: true },
+    { name: 'etapa', label: 'Etapa', align: 'left', field: 'etapa', sortable: true },
+    { name: 'status_final', label: 'Status Final', align: 'left', field: 'status_final', sortable: true },
+    { name: 'actions', label: 'Ações', align: 'center', field: 'actions', sortable: true },
+]
+const visibleColumns = ref([
+    'tipo_oficio',
+    'data',
+    'tipo_documento',
+    'numero_oficio',
+    'destinatario',
+    'responsavel',
+    'prazo',
+    'etapa',
+    'actions',
+]);
+
 
 onMounted(() => {
     loadList();
@@ -365,9 +385,28 @@ onMounted(() => {
 
 function loadList()
 {
-    rows.value = props.oficios;
+    props.oficios.forEach((oficio) => {
+        if(oficio.tipo_oficio == 'Recebido'){
+            oficio.data = oficio.data_recebimento ? oficio.data_recebimento.split('-').reverse().join('/') : oficio.data_recebimento;
+        }else{
+            oficio.data = oficio.data_emissao ? oficio.data_emissao.split('-').reverse().join('/') : oficio.data_emissao;
+        }
 
-    loadFilters()
+        oficio.responsavel = '';
+        oficio.responsaveis.forEach((responsavel, index) => {
+            if(index == oficio.responsaveis.length){
+                oficio.responsavel += responsavel.user.name + ', ';
+            }else{
+                oficio.responsavel += responsavel.user.name;
+            }
+        });
+
+        oficio.destinatario = oficio.destinatario.nome;
+
+        rows.value.push(oficio);
+    });
+
+    loadFilters();
 }
 
 function loadFilters()
@@ -407,7 +446,10 @@ function loadFilters()
 
         oficio.responsaveis.map((responsavel) => {
             if(!optionsFilters.value.responsavel.includes(responsavel)){
-                optionsFilters.value.responsavel.push(responsavel)
+                optionsFilters.value.responsavel.push({
+                    label: responsavel.user.name,
+                    value: responsavel.user.id
+                })
             }
         })
 
@@ -427,31 +469,6 @@ function loadFilters()
     });
 
 }
-
-const columns = [
-    { name: 'tipo_oficio', label: 'Tipo de ofício', align: 'left', field: 'tipo_oficio', sortable: true },
-    { name: 'data', label: 'Data', align: 'left', field: 'data', sortable: true },
-    { name: 'tipo_documento', label: 'Documento', align: 'left', field: 'tipo_documento', sortable: true },
-    { name: 'numero_oficio', label: 'Número', align: 'left', field: 'numero_oficio', sortable: true },
-    { name: 'destinatario', label: 'Origem', align: 'left', field: 'destinatario', sortable: true },
-    { name: 'status_inicial', label: 'Status Inicial', align: 'left', field: 'status_inicial', sortable: true },
-    { name: 'responsaveis', label: 'Responsavel', align: 'left', field: 'responsaveis', sortable: true },
-    { name: 'prazo', label: 'Prazo', align: 'left', field: 'prazo', sortable: true },
-    { name: 'etapa', label: 'Etapa', align: 'left', field: 'etapa', sortable: true },
-    { name: 'status_final', label: 'Status Final', align: 'left', field: 'status_final', sortable: true },
-    { name: 'actions', label: 'Ações', align: 'center', field: 'actions', sortable: true },
-]
-const visibleColumns = ref([
-    'tipo_oficio',
-    'data',
-    'tipo_documento',
-    'numero_oficio',
-    'destinatario',
-    'responsaveis',
-    'prazo',
-    'etapa',
-    'actions',
-]);
 const form = useForm({
     id: '',
 })
@@ -466,8 +483,6 @@ const filters = ref({
     prazo: null,
     etapa: null,
 });
-
-const rows = ref();
 
 async function destroy(items)
 {

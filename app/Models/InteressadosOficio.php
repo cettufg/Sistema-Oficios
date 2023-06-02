@@ -13,4 +13,14 @@ class InteressadosOficio extends Model
         'user_id',
         'oficio_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function oficio()
+    {
+        return $this->belongsTo(Oficio::class);
+    }
 }
