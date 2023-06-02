@@ -1,6 +1,6 @@
 <template>
     <div class="tw-text-primary">
-        <div class="tw-flex tw-justify-between tw-py-10 tw-px-20 tw-border-2">
+        <div class="tw-flex tw-justify-between tw-py-10 tw-px-5 md:tw-px-20 tw-border-2">
             <Link :href="route('index')">
                 <ApplicationLogo class="tw-w-48" />
             </Link>
@@ -134,7 +134,6 @@ import PrimaryLink from '@/Components/PrimaryLink.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link } from '@inertiajs/vue3';
 import { Icon } from '@iconify/vue';
 import { ref } from 'vue';
@@ -160,7 +159,6 @@ function menuValidate(item, user){
         return true;
     }
 }
-
 const itemsMenu = [
     {
         name: 'Oficios',

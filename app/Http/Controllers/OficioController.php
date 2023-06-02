@@ -24,83 +24,16 @@ class OficioController extends Controller
 {
     public function index()
     {
-        $oficios = Oficio::with('destinatario')->with('responsaveis')->with('interessados')->with('anexos')->orderBY('created_at', 'desc')->get();
-        $users = User::all('id', 'name');
+        $logged_user = auth()->user()->id;
 
-        $dados = [];
-        foreach ($oficios as $oficio) {
-            $responsaveis = [];
-            $is_responsavel = false;
-            $is_interessado = false;
-
-            foreach ($oficio->responsaveis as $responsavel) {
-                foreach ($users as $user) {
-                    if ($user->id == $responsavel->user_id) {
-                        array_push($responsaveis, $user->name);
-                        if (auth()->user()->id == $responsavel->user_id) {
-                            $is_responsavel = true;
-                        }
-                    }
-                }
-            }
-
-            foreach ($oficio->interessados as $interessado) {
-                if (auth()->user()->id == $interessado->user_id) {
-                    $is_interessado = true;
-                }
-            }
-
-            $data_inicio = new \DateTime($oficio->created_at);
-            $data_final = new \DateTime();
-            $intervaloPadrao = $data_inicio->diff($data_final);
-            $prazoPadrao = $intervaloPadrao->d;
-
-            if ($oficio->created_at) {
-                $recente = $prazoPadrao <= 1 ? true : false;
-            } else {
-                $recente = false;
-            }
-
-            if (auth()->user()->is_admin) {
-                array_push($dados, [
-                    'id' => $oficio->id,
-                    'tipo_oficio' => $oficio->tipo_oficio,
-                    'data' => $oficio->tipo_oficio == 'Recebido' ? date('d/m/Y', strtotime($oficio->data_recebimento)) : date('d/m/Y', strtotime($oficio->data_emissao)),
-                    'tipo_documento' => $oficio->tipo_documento,
-                    'numero_oficio' => $oficio->numero_oficio,
-                    'destinatario' => $oficio->destinatario->nome,
-                    'status_inicial' => $oficio->status_inicial,
-                    'responsaveis' => $responsaveis,
-                    'prazo' => $oficio->prazo,
-                    'etapa' => $oficio->etapa,
-                    'status_final' => $oficio->status_final,
-                    'recente' => $recente,
-                ]);
-            } else {
-                if ($is_interessado == true || $is_responsavel == true || $oficio->user_created == auth()->user()->id) {
-                    array_push($dados, [
-                        'id' => $oficio->id,
-                        'tipo_oficio' => $oficio->tipo_oficio,
-                        'data' => $oficio->tipo_oficio == 'Recebido' ? date('d/m/Y', strtotime($oficio->data_recebimento)) : date('d/m/Y', strtotime($oficio->data_emissao)),
-                        'tipo_documento' => $oficio->tipo_documento,
-                        'numero_oficio' => $oficio->numero_oficio,
-                        'destinatario' => $oficio->destinatario->nome,
-                        'status_inicial' => $oficio->status_inicial,
-                        'responsaveis' => $responsaveis,
-                        'prazo' => $oficio->prazo,
-                        'etapa' => $oficio->etapa,
-                        'status_final' => $oficio->status_final,
-                        'recente' => $recente,
-                    ]);
-                }
-            }
-        }
-
-        $usuario = auth()->user();
+        $oficios = Oficio::with(['destinatario', 'responsaveis' => function ($query) use ($logged_user) {
+            $query->where('user_id', $logged_user);
+        }, 'interessados' => function ($query) use ($logged_user) {
+            $query->where('user_id', $logged_user);
+        }, 'anexos'])->where('user_created', $logged_user)->orderBY('created_at', 'desc')->get();
 
         return Inertia::render('Oficio/Index', [
-            'oficios' => $dados,
-            'usuario' => $usuario
+            'oficios' => $oficios,
         ]);
     }
 
