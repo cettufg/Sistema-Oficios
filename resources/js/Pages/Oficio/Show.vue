@@ -2,7 +2,7 @@
     <Head title="Detalhes do ofício" />
 
     <AuthenticatedLayout>
-        <div class="tw-overflow-hidden tw-mx-20 tw-my-10">
+        <div class="tw-overflow-hidden tw-mx-10 tw-my-10">
             <div class="tw-flex tw-items-center tw-mb-10">
                 <span class="tw-text-3xl tw-mr-7">Ofício</span>
                 <Link class="tw-flex tw-items-center tw-justify-center tw-mt-1" :href="route('oficio.index')">
@@ -10,124 +10,221 @@
                 </Link>
             </div>
 
-            <div class="tw-w-full md:tw-w-[60%] tw-border tw-border-gray-300 tw-p-6 tw-rounded-lg">
+            <div class="tw-w-full md:tw-w-[80%] tw-border tw-border-gray-300 tw-p-6 tw-rounded-lg">
                 <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
                     <div>
                         <span class="tw-font-bold">Tipo de Ofício</span>
-                        <div>{{ oficio.tipo_oficio }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.tipo_oficio"
+                        />
                     </div>
 
                     <div v-if="oficio.tipo_oficio == 'Recebido'">
                         <span class="tw-font-bold">Tipo de documento</span>
-                        <div>{{ oficio.tipo_documento }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.tipo_documento"
+                        />
                     </div>
 
                     <div v-if="oficio.tipo_oficio == 'Expedido'">
                         <span class="tw-font-bold">Diretoria</span>
-                        <div v-for="diretoria in oficio.diretorias">{{ getDiretoria(diretoria.diretoria_id)[0].nome }}</div>
+                        <q-select
+                            outlined
+                            readonly
+                            v-model="optionsDiretoria"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Número do ofício</span>
-                        <div>{{ oficio.numero_oficio }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.numero_oficio"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Destinatário</span>
-                        <div>{{ oficio.destinatario.nome }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.destinatario.nome"
+                        />
                     </div>
 
                     <div v-if="oficio.tipo_oficio == 'Recebido'">
                         <span class="tw-font-bold">Assunto do ofício recebido</span>
-                        <div>{{ oficio.assunto_oficio }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.assunto_oficio"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Prazo</span>
-                        <div>{{ oficio.prazo }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.prazo"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Dias corridos?</span>
-                        <div>{{ oficio.dias_corridos == 0 ? 'Não' : 'Sim' }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.dias_corridos"
+                        />
                     </div>
 
                     <div v-if="oficio.tipo_oficio == 'Recebido'">
                         <span class="tw-font-bold">Data de recebimento</span>
-                        <div>{{ oficio.data_recebimento.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1') }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.data_recebimento"
+                        />
                     </div>
 
                     <div v-if="oficio.tipo_oficio == 'Expedido'">
                         <span class="tw-font-bold">Data de emissão</span>
-                        <div>{{ oficio.data_emissao.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1') }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            v-model="oficio.data_emissao"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Responsáveis</span>
-                        <div v-for="responsavel in oficio.responsaveis">{{ getNameUser(responsavel.user_id)[0].name }}</div>
+                        <q-select
+                            outlined
+                            readonly
+                            v-model="optionsResponsaveis"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Interessados</span>
-                        <div v-for="interessado in oficio.interessados">{{ getNameUser(interessado.user_id)[0].name }}</div>
+                        <q-select
+                            outlined
+                            readonly
+                            v-model="optionsInteressados"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Status inicial</span>
-                        <div>{{ oficio.status_inicial }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            autogrow
+                            v-model="oficio.status_inicial"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Status final</span>
-                        <div>{{ oficio.status_final }}</div>
-                    </div>
-
-                    <div>
-                        <span class="tw-font-bold">Anexos</span>
-                        <div v-for="anexo in oficio.anexos">{{ anexo.nome }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            autogrow
+                            v-model="oficio.status_final"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Observação</span>
-                        <div>{{ oficio.observacao }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            autogrow
+                            v-model="oficio.observacao"
+                        />
                     </div>
 
                     <div>
                         <span class="tw-font-bold">Etapa</span>
-                        <div>{{ oficio.etapa }}</div>
+                        <q-input
+                            outlined
+                            readonly
+                            autogrow
+                            v-model="oficio.etapa"
+                        />
                     </div>
 
                 </div>
 
-                <div class="tw-mt-8 tw-text-xl" v-if="props.oficios_relacionados.length > 0 || oficio.oficios_externos.length > 0">
-                    Ofícios relacionados
-                </div>
-                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4 tw-mt-4" v-if="props.oficios_relacionados.length > 0 || oficio.oficios_externos.length > 0">
-                    <div>
-                        <span class="tw-font-bold">Ofícios relacionados</span>
-                        <div v-for="relacionado in props.oficios_relacionados">{{ getOficioDescription(relacionado.oficio_filho)[0].tipo_oficio}} -  {{ getOficioDescription(relacionado.oficio_filho)[0].numero_oficio }}</div>
-                    </div>
-
-                    <div v-if="oficio.oficios_externos">
-                        <span class="tw-font-bold">Ofícios externos</span>
-                        <div v-for="externo in oficio.oficios_externos">{{ externo.descricao }}</div>
-                    </div>
+                <div class="tw-w-full tw-mt-5 tw-flex tw-flex-col tw-gap-2">
+                    <span class="tw-text-2xl tw-font-bold">Anexos</span>
+                    <q-list bordered separator>
+                        <q-item v-for="(anexo, index) in oficio.anexos" :key="index" clickable v-ripple>
+                            <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                                {{ anexo.nome }}
+                                <a :href="url + '/storage/' + anexo.caminho" target="_blank" class="tw-text-blue-500 tw-text-sm">Visualizar</a>
+                            </div>
+                        </q-item>
+                    </q-list>
                 </div>
 
-                <div class="tw-mt-8 tw-text-xl" v-if="oficio.tipo_oficio == 'Recebido'">
-                    Ciência
+                <div class="tw-w-full tw-mt-5 tw-flex tw-flex-col tw-gap-4" v-if="oficio.oficios_relacionados.length > 0 || oficio.oficios_externos.length > 0">
+                    <span class="tw-text-2xl tw-font-bold">Ofícios Relacionados</span>
+                    <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                        <div class="tw-w-full" v-if="oficio.oficios_relacionados.length > 0">
+                            <span class="tw-text-lg tw-font-bold">Internos</span>
+                            <q-list bordered separator>
+                                <q-item v-for="(oficio, index) in oficio.oficios_relacionados" :key="index" clickable v-ripple>
+                                    <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                                        <div class="tw-w-full tw-flex tw-flex-col tw-items-start tw-justify-center">
+                                            <div><span class="tw-font-bold">Tipo:</span> {{ oficio.oficio_filho.tipo_oficio }}</div>
+                                            <div><span class="tw-font-bold">Número do ofício:</span> {{ oficio.oficio_filho.numero_oficio }}</div>
+                                        </div>
+                                        <a :href="url + '/oficio/detail/' + oficio.oficio_filho.id" target="_blank" class="tw-text-blue-500 tw-text-sm">Visualizar</a>
+                                    </div>
+                                </q-item>
+                            </q-list>
+                        </div>
+
+                        <div class="tw-w-full" v-if="oficio.oficios_externos.length > 0">
+                            <span class="tw-text-lg tw-font-bold">Externos</span>
+                            <q-list bordered separator>
+                                <q-item v-for="(oficio, index) in oficio.oficios_externos" :key="index" clickable v-ripple>
+                                    <div class="tw-w-full tw-flex tw-flex-col tw-items-start tw-justify-center">
+                                        <div><span class="tw-font-bold">Descrição:</span> {{ oficio.descricao }}</div>
+                                    </div>
+                                </q-item>
+                            </q-list>
+                        </div>
+                    </div>
                 </div>
-                <div class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4 tw-mt-4" v-if="oficio.tipo_oficio == 'Recebido'">
-                    <div>
-                        <button v-if="!ciente" class="tw-bg-green-500 tw-px-3 tw-py-2 tw-rounded-lg tw-text-white" @click="darCiencia()">Dar ciência</button>
-                    </div>
 
-                    <div>
-                        <span class="tw-font-bold">Deram ciência</span>
-                        <div v-for="ciente in cientes">{{ ciente.name }}</div>
-                        <div v-if="oficio.cientes.length == 0">Niguém deu ciência ainda</div>
+                <div class="tw-w-full tw-mt-5 tw-flex tw-flex-col tw-gap-2">
+                    <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                        <span class="tw-text-2xl tw-font-bold">Ciência</span>
+                        <q-btn
+                            color="info"
+                            label="Dar ciência"
+                            v-if="ciente == false"
+                            @click="darCiencia()"
+                        />
                     </div>
-
+                    <q-list bordered separator>
+                        <q-item clickable v-ripple v-for="(ciencia, index) in oficio.cientes" :key="index">
+                            <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                                <div class="tw-w-full tw-flex tw-flex-col tw-items-start tw-justify-center">
+                                    <div><span class="tw-font-bold">Ciência:</span> {{ ciencia.user.name }}</div>
+                                    <div><span class="tw-font-bold">Data da ciência:</span> {{ formatarDataBrasileira(new Date(ciencia.created_at)) }}</div>
+                                </div>
+                            </div>
+                        </q-item>
+                    </q-list>
                 </div>
             </div>
         </div>
@@ -136,91 +233,75 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { Notify } from 'quasar';
 
+const url = window.location.href.split('/oficio/detail')[0];
 const props = defineProps({
     oficio:{
         default: '',
         type: Object
-    },
-    oficios_relacionados:{
-        default: '',
-        type: Object
-    },
-    usuarios:{
-        default: '',
-        type: Object
-    },
-    oficios:{
-        default: '',
-        type: Object
-    },
-    diretorias: {
-        default: '',
-        type: Object
-    },
-    usuario: {
-        default: '',
-        type: Object
     }
 })
-
+const oficio = props.oficio[0];
 const ciente = ref(false);
-const cientes = ref([]);
 
-const oficio = ref(props.oficio[0])
 onMounted(() => {
-    geraCiente()
-})
+    if(oficio.tipo_oficio == 'Expedido'){
+        oficio.diretorias.forEach((diretoria) => {
+            optionsDiretoria.value.push(diretoria.diretoria.nome)
+        })
 
-function getNameUser(id){
-    if(id){
-        return props.usuarios.filter((item) => {
-            if(item.id == id){
-                return item;
-            }
-        });
+        oficio.data_emissao = oficio.data_emissao.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
+    }else{
+        oficio.data_recebimento = oficio.data_recebimento.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
     }
-}
-function getOficioDescription(id){
-    if(id){
-        return props.oficios.filter((item) => {
-            if(item.id == id){
-                return item;
-            }
-        });
-    }
-}
-function geraCiente()
-{
-    cientes.value = [];
-    oficio.value.cientes.map((item) => {
-        if(item.user_id == props.usuario.id){
-            ciente.value = true;
-            cientes.value.push({name: 'Você deu ciência'})
-        }else{
-            cientes.value.push({name: getNameUser(item.user_id)[0].name })
-        }
+
+    oficio.responsaveis.forEach((responsavel) => {
+        optionsResponsaveis.value.push(responsavel.user.name)
     })
-}
-function getDiretoria(id){
-    return props.diretorias.filter((diretoria) => {
-        if(diretoria.id == id){
-            return true;
-        }
-    });
-}
+
+    oficio.interessados.forEach((interessado) => {
+        optionsInteressados.value.push(interessado.user.name)
+    })
+
+    oficio.dias_corridos = oficio.dias_corridos == 0 ? 'Não' : 'Sim';
+
+    form.id = oficio.id;
+});
+
+const form = useForm({
+    id: ''
+});
+const optionsDiretoria = ref([]);
+const optionsResponsaveis = ref([]);
+const optionsInteressados = ref([]);
+
 function darCiencia()
 {
-    axios.post(route('oficio.ciencia', oficio.value.id))
-    .then((response) => {
-        if(response.status == 200){
+    form.post(route('oficio.ciencia', form.id), {
+        preserveScroll: true,
+        onSuccess: () => {
             ciente.value = true;
-            oficio.value = response.data[0];
-            geraCiente()
+            Notify.create({
+                message: 'Ciência dada com sucesso!',
+                type: 'positive',
+            })
+        }, onError: () => {
+            Notify.create({
+                message: 'Erro ao dar ciência!',
+                type: 'negative',
+            })
         }
     });
+}
+
+function formatarDataBrasileira(data) {
+  var dia = data.getDate().toString().padStart(2, '0');
+  var mes = (data.getMonth() + 1).toString().padStart(2, '0');
+  var ano = data.getFullYear().toString();
+  return dia + '/' + mes + '/' + ano;
 }
 </script>

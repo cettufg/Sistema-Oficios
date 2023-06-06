@@ -4,8 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Destinatario;
 use App\Models\ResponsavelOficio;
 use App\Models\AnexoOficio;
@@ -38,38 +36,43 @@ class Oficio extends Model
         'user_updated'
     ];
 
-    public function destinatario(): HasOne
+    public function destinatario()
     {
         return $this->hasOne(Destinatario::class, 'id', 'destinatario_id');
     }
 
-    public function responsaveis(): HasMany
+    public function responsaveis()
     {
-        return $this->hasMany(ResponsavelOficio::class, 'oficio_id', 'id');
+        return $this->hasMany(ResponsavelOficio::class);
     }
 
-    public function interessados(): HasMany
+    public function interessados()
     {
-        return $this->hasMany(InteressadosOficio::class, 'oficio_id', 'id');
+        return $this->hasMany(InteressadosOficio::class);
     }
 
-    public function anexos(): HasMany
+    public function anexos()
     {
-        return $this->hasMany(AnexoOficio::class, 'oficio_id', 'id');
+        return $this->hasMany(AnexoOficio::class);
     }
 
-    public function oficios_externos(): HasMany
+    public function oficios_externos()
     {
-        return $this->hasMany(OficioExterno::class, 'oficio_id', 'id');
+        return $this->hasMany(OficioExterno::class);
     }
 
-    public function diretorias(): HasMany
+    public function diretorias()
     {
-        return $this->hasMany(DiretoriaOficio::class, 'oficio_id', 'id');
+        return $this->hasMany(DiretoriaOficio::class);
     }
-    
-    public function cientes(): HasMany
+
+    public function cientes()
     {
-        return $this->hasMany(CienteOficio::class, 'oficio_id', 'id');
+        return $this->hasMany(CienteOficio::class);
+    }
+
+    public function oficios_relacionados()
+    {
+        return $this->hasMany(OficioRelacionado::class, 'oficio_pai', 'id');
     }
 }

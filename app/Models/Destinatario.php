@@ -16,4 +16,9 @@ class Destinatario extends Model
         'user_updated'
     ];
 
+    public function oficios()
+    {
+        return $this->hasMany(Oficio::class, 'destinatario_id', 'id');
+    }
+
 }

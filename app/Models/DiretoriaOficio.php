@@ -13,4 +13,14 @@ class DiretoriaOficio extends Model
         'diretoria_id',
         'oficio_id',
     ];
+
+    public function oficio()
+    {
+        return $this->hasOne(Oficio::class, 'id', 'oficio_id');
+    }
+
+    public function diretoria()
+    {
+        return $this->hasOne(Diretoria::class, 'id', 'diretoria_id');
+    }
 }

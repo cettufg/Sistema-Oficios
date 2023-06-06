@@ -53,7 +53,7 @@
                 <PrimaryButton
                     type="submit"
                     class="tw-px-4 tw-py-3"
-                    background="positive"
+                    background="primary"
                     text="Criar Conta"
                     :disabled="form.processing"
                 />

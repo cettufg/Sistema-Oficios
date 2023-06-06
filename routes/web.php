@@ -45,11 +45,11 @@ Route::group([
         Route::get('/edit/{id}', [OficioController::class, 'edit'])->name('oficio.edit');
         Route::post('/edit/{id}', [OficioController::class, 'update'])->name('oficio.update');
 
-        Route::delete('/anexo/{id}', [OficioController::class, 'removeanexo'])->name('oficio.removeanexo');
+        Route::delete('/anexo/{id}', [OficioController::class, 'destroyAnexo'])->name('oficio.destroyAnexo');
         Route::get('/email/{id}', [OficioController::class, 'email'])->name('oficio.email');
 
         Route::delete('/', [OficioController::class, 'destroy'])->name('oficio.destroy');
-        Route::delete('/selected', [OficioController::class, 'destroyselected'])->name('oficio.destroyselected');
+        Route::delete('/selected', [OficioController::class, 'destroySelected'])->name('oficio.destroySelected');
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
 

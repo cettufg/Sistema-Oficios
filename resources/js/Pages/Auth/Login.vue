@@ -32,7 +32,7 @@
                     type="submit"
                     class="tw-px-4 tw-py-3"
                     :disabled="form.processing"
-                    background="positive"
+                    background="primary"
                     text="Entrar"
                 />
                 <PrimaryLink

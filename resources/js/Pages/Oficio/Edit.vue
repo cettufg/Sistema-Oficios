@@ -205,6 +205,21 @@
                             </q-file>
                         </div>
 
+                        <div class="tw-col-span-2">
+                            <q-list bordered separator>
+                                <q-item v-for="(anexo, index) in anexos_novos" :key="index">
+                                    <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
+                                        {{ anexo.nome }}
+                                        <PrimaryButton
+                                            @click="destroyArquivo(index, anexo.id)"
+                                            class="tw-p-2 tw-text-negative"
+                                            icon="ic:baseline-delete"
+                                        />
+                                    </div>
+                                </q-item>
+                            </q-list>
+                        </div>
+
                         <div>
                             <InputLabel value="Observação" />
                             <q-input v-model="form.dados_recebidos.observacao"
@@ -491,12 +506,12 @@
 
             <div class="tw-flex tw-items-center">
                 <PrimaryButton
-                    @click="storeData()"
+                    @click="saveData()"
                     :disabled="form.processing"
                     class="tw-px-4 tw-py-3"
                     background="primary"
-                    text="Cadastrar"
-                    icon="material-symbols:add-circle-outline"
+                    text="Salvar"
+                    icon="ic:baseline-save"
                 />
             </div>
         </div>
@@ -510,6 +525,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
+import { Notify } from 'quasar';
 
 const props = defineProps({
     oficio: {
@@ -529,14 +545,6 @@ const props = defineProps({
         type: Array
     },
     diretorias: {
-        default: [],
-        type: Array
-    },
-    oficios_relacionados: {
-        default: [],
-        type: Array
-    },
-    oficios_externos: {
         default: [],
         type: Array
     }
@@ -600,11 +608,11 @@ onMounted(() => {
         form.dados_recebidos.data_recebimento = props.oficio[0].data_recebimento;
 
         props.oficio[0].responsaveis.map((item) => {
-            form.dados_recebidos.responsaveis.push({label: getNameUser(item.user_id)[0].name, id: item.user_id});
+            form.dados_recebidos.responsaveis.push({label: item.user.name, id: item.user.id});
         });
 
         props.oficio[0].interessados.map((item) => {
-            form.dados_recebidos.interessados.push({label: getNameUser(item.user_id)[0].name, id: item.user_id});
+            form.dados_recebidos.interessados.push({label: item.user.name, id: item.user.id});
         });
     }else{
 
@@ -622,11 +630,11 @@ onMounted(() => {
         form.dados_expedidos.data_prazo = props.oficio[0].data_prazo;
 
         props.oficio[0].responsaveis.map((item) => {
-            form.dados_expedidos.responsaveis.push({label: getNameUser(item.user_id)[0].name, id: item.user_id});
+            form.dados_expedidos.responsaveis.push({label: item.user.name, id: item.user.id});
         });
 
         props.oficio[0].interessados.map((item) => {
-            form.dados_expedidos.interessados.push({label: getNameUser(item.user_id)[0].name, id: item.user_id});
+            form.dados_expedidos.interessados.push({label: item.user.name, id: item.user.id});
         });
     }
 
@@ -640,13 +648,12 @@ onMounted(() => {
         form.oficio_externo.push({label: item.descricao, id: item.id});
     });
 
-    props.oficios_relacionados.map((item) => {
-        form.oficio_relacionado.push({label: getOficioDescription(item.oficio_filho)[0].tipo_oficio + ' - ' + getOficioDescription(item.oficio_filho)[0].numero_oficio, id: item.oficio_filho});
+    props.oficio[0].oficios_relacionados.map((item) => {
+        form.oficio_relacionado.push({label: item.oficio_filho.tipo_oficio + ' - ' + item.oficio_filho.numero_oficio, id: item.oficio_filho.id});
     });
 
 });
 
-const enviando = ref(false);
 const options_tipo_oficio = ['Recebido', 'Expedido'];
 const options_responsaveis = ref([]);
 const options_interessados = ref([]);
@@ -703,17 +710,21 @@ const form = useForm({
 
 const tab = ref('oficio')
 
-function save(){
-    enviando.value = true;
+function saveData(){
     form.post(route('oficio.update', form.id),{
         preserveScroll: true,
         onSuccess: (response) => {
-            enviando.value = false;
+            Notify.create({
+                message: 'Ofício atualizado com sucesso!',
+                type: 'positive',
+            })
         },
         onError: () => {
-            enviando.value = false;
+            Notify.create({
+                message: 'Erro ao atualizar ofício!',
+                type: 'negative',
+            })
         },
-        onFinish: () => '',
     });
 }
 
@@ -793,33 +804,27 @@ function filterFnOficioRelacionado (val, update) {
         options_filter_oficio_relacionado.value = options_oficio_relacionado.value.filter(v => v.label.toLowerCase().indexOf(needle) > -1)
     })
 }
-function getNameUser(id){
-    if(id){
-        return props.usuarios.filter((item) => {
-            if(item.id == id){
-                return item;
-            }
-        });
-    }
-}
-function getOficioDescription(id){
-    if(id){
-        return props.oficios.filter((item) => {
-            if(item.id == id){
-                return item;
-            }
-        });
-    }
-}
 
-async function deleteArquivo(index, id)
+function destroyArquivo(index, id)
 {
-    await axios.delete(route('oficio.removeanexo', anexos_novos.value[index].id))
-    .then((response) => {
-        if(response.status == 200){
-            anexos_novos.value.splice(index, 1);
-        }
-    });
+    if(index != null && id != null){
+        form.delete(route('oficio.destroyAnexo', id),{
+            preserveScroll: true,
+            onSuccess: (response) => {
+                anexos_novos.value.splice(index, 1);
+                Notify.create({
+                    message: 'Anexo excluído com sucesso!',
+                    type: 'positive',
+                });
+            },
+            onError: () => {
+                Notify.create({
+                    message: 'Erro ao excluir anexo!',
+                    type: 'negative',
+                });
+            }
+        });
+    }
 }
 
 </script>

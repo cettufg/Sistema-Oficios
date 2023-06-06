@@ -185,7 +185,9 @@
                                 {{ props.row.numero_oficio }}
                             </q-td>
                             <q-td key="destinatario" :props="props">
-                                {{ props.row.destinatario }}
+                                <div class="tw-flex tw-flex-wrap">
+                                    {{ props.row.destinatario }}
+                                </div>
                             </q-td>
                             <q-td key="status_inicial" :props="props">
                                 {{ props.row.status_inicial }}
@@ -220,7 +222,7 @@
 
                     <template v-slot:top-left>
                         <div class="tw-flex tw-my-5 sm:tw-my-0">
-                            <button v-if="$page.props.auth.user.is_admin" :disabled="selected.length == 0" class="tw-rounded-full tw-bg-red-500 tw-text-white tw-text-xl tw-p-2 hover:tw-bg-red-200 hover:tw-text-black" @click="destroy(selected)">
+                            <button v-if="$page.props.auth.user.is_admin" :disabled="selected.length == 0" class="tw-rounded-full tw-bg-red-500 tw-text-white tw-text-xl tw-p-2 hover:tw-bg-red-200 hover:tw-text-black" @click="destroyAll(selected)">
                                 <Icon icon="uil:trash" />
                             </button>
 
@@ -280,12 +282,10 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import PrimaryButton from '@/Components/PrimaryButton.vue';
 import PrimaryLink from '@/Components/PrimaryLink.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
-import axios from 'axios';
 
 const props = defineProps({
     oficios:{
@@ -344,7 +344,6 @@ const visibleColumns = ref([
     'actions',
 ]);
 
-
 onMounted(() => {
     loadList();
 
@@ -352,11 +351,22 @@ onMounted(() => {
         filters.value.tipo_oficio = sessionStorage.getItem('filters.tipo_oficio');
         filtrar(filters.value.tipo_oficio, 'tipo_oficio');
     }
+
     if(sessionStorage.getItem('filters.data') && sessionStorage.getItem('filters.data') != 'null'){
         filters.value.data = sessionStorage.getItem('filters.data');
-        filterDataFormatted.value = sessionStorage.getItem('filters.data').from.split('/').reverse().join('/') + ' - ' + sessionStorage.getItem('filters.data').to.split('/').reverse().join('/');
+        filterDataFormatted.value = filters.value.data.split('/').reverse().join('/');
         filtrar(filters.value.data, 'data');
     }
+
+    if(sessionStorage.getItem('filters.data.from') && sessionStorage.getItem('filters.data.from') != 'null'){
+        filters.value.data = {
+            from: sessionStorage.getItem('filters.data.from'),
+            to: sessionStorage.getItem('filters.data.to'),
+        };
+        filterDataFormatted.value = filters.value.data.from.split('/').reverse().join('/') + ' - ' + filters.value.data.to.split('/').reverse().join('/');
+        filtrar(filters.value.data, 'data');
+    }
+
     if(sessionStorage.getItem('filters.tipo_documento') && sessionStorage.getItem('filters.tipo_documento') != 'null'){
         filters.value.tipo_documento = sessionStorage.getItem('filters.tipo_documento');
         filtrar(filters.value.tipo_documento, 'tipo_documento');
@@ -385,7 +395,9 @@ onMounted(() => {
 
 function loadList()
 {
-    props.oficios.forEach((oficio) => {
+    rows.value = props.oficios;
+
+    rows.value.forEach((oficio) => {
         if(oficio.tipo_oficio == 'Recebido'){
             oficio.data = oficio.data_recebimento ? oficio.data_recebimento.split('-').reverse().join('/') : oficio.data_recebimento;
         }else{
@@ -394,16 +406,18 @@ function loadList()
 
         oficio.responsavel = '';
         oficio.responsaveis.forEach((responsavel, index) => {
-            if(index == oficio.responsaveis.length){
+            if(oficio.responsaveis.length > 1 && index < oficio.responsaveis.length - 1){
                 oficio.responsavel += responsavel.user.name + ', ';
             }else{
                 oficio.responsavel += responsavel.user.name;
             }
         });
 
-        oficio.destinatario = oficio.destinatario.nome;
-
-        rows.value.push(oficio);
+        if(oficio.destinatario.nome){
+            oficio.destinatario = oficio.destinatario.nome;
+        }else{
+            oficio.destinatario = oficio.destinatario;
+        }
     });
 
     loadFilters();
@@ -445,11 +459,10 @@ function loadFilters()
         }
 
         oficio.responsaveis.map((responsavel) => {
-            if(!optionsFilters.value.responsavel.includes(responsavel)){
-                optionsFilters.value.responsavel.push({
-                    label: responsavel.user.name,
-                    value: responsavel.user.id
-                })
+            if(!optionsFilters.value.responsavel.includes(responsavel.user.name)){
+                if(responsavel.user.name){
+                    optionsFilters.value.responsavel.push(responsavel.user.name)
+                }
             }
         })
 
@@ -471,6 +484,7 @@ function loadFilters()
 }
 const form = useForm({
     id: '',
+    selecteds: [],
 })
 
 const filters = ref({
@@ -484,22 +498,27 @@ const filters = ref({
     etapa: null,
 });
 
-async function destroy(items)
+function destroyAll(items)
 {
-    await axios.delete(route('oficio.destroyselected'), {data: items})
-    .then((response) => {
-        if(response.status == 200){
-            selected.value = [];
-            rows.value = response.data;
-        }
+    form.selecteds = items;
+
+    form.delete(route('oficio.destroySelected'),{
+        preserveScroll: true,
+        onSuccess: (response) => {
+            rows.value = response.props.oficios;
+            Notify.create({
+                message: 'Ofícios excluídos com sucesso!',
+                type: 'positive',
+            });
+        },
+        onError: () => '',
+        onFinish: () => '',
     });
 }
 
-function destroyItem(item)
+function destroy()
 {
-    form.id = item.id;
-
-    form.delete(route('oficio.destroy'),{
+    form.delete(route('oficio.destroy', form.id),{
         preserveScroll: true,
         onSuccess: (response) => {
             rows.value = response.props.oficios;
@@ -544,6 +563,7 @@ function filterPrazo(val, update){
 }
 
 function filterNumeroOficio(val, update){
+    console.log(val);
     if (val === '') {
         update(() => {
             optionsFiltred.value.numero_oficio = optionsFilters.value.numero_oficio
@@ -560,14 +580,28 @@ function filterNumeroOficio(val, update){
 function filtrar(value, type){
     filters.value[type] = value;
 
-
     if(filters.value.data != null){
-        filterDataFormatted.value = value.from.split('/').reverse().join('/') + ' - ' + value.to.split('/').reverse().join('/');
+        if(value.from){
+            filterDataFormatted.value = value.from.split('/').reverse().join('/') + ' - ' + value.to.split('/').reverse().join('/');
+        }else{
+            filterDataFormatted.value = value.split('/').reverse().join('/');
+        }
     }
 
-    if(sessionStorage.getItem('filters.' + type) != null){
-        sessionStorage.removeItem('filters.' + type);
-        sessionStorage.setItem('filters.' + type, value);
+    sessionStorage.removeItem('filters.' + type);
+    if(type == 'data'){
+        sessionStorage.removeItem('filters.data.from');
+        sessionStorage.removeItem('filters.data.to');
+        sessionStorage.removeItem('filters.data');
+
+        if(value){
+            if(value.from){
+                sessionStorage.setItem('filters.data.from', value.from);
+                sessionStorage.setItem('filters.data.to', value.to);
+            }else{
+                sessionStorage.setItem('filters.data', value);
+            }
+        }
     }else{
         sessionStorage.setItem('filters.' + type, value);
     }
@@ -583,13 +617,19 @@ function filtrar(value, type){
     if(filters.value.data != null){
         rows.value = rows.value.filter((item, index) => {
             if(filters.value.data != null){
-                let dataCompare = new Date(item.data.split('/').reverse().join('-'));
-                let dataFromCompare = new Date(filters.value.data.from.split('/').join('-'));
-                let dataToCompare = new Date(filters.value.data.to.split('/').join('-'));
-                return (dataCompare >= dataFromCompare && dataCompare <= dataToCompare);
+                if(filters.value.data.from){
+                    let dataCompare = new Date(item.data.split('/').reverse().join('-'));
+                    let dataFromCompare = new Date(filters.value.data.from.split('/').join('-'));
+                    let dataToCompare = new Date(filters.value.data.to.split('/').join('-'));
+                    return (dataCompare >= dataFromCompare && dataCompare <= dataToCompare);
+                }else{
+                    let dataCompare = item.data.split('/').reverse().join('-');
+                    let dataToCompare = filters.value.data.split('/').join('-');
+                    return (dataCompare == dataToCompare);
+                }
             }
         });
-    }
+    };
 
     if(filters.value.tipo_documento != null){
         rows.value = rows.value.filter((item, index) => {
@@ -611,7 +651,7 @@ function filtrar(value, type){
 
     if(filters.value.responsavel != null){
         rows.value = rows.value.filter((item, index) => {
-            return (filters.value.responsavel != null && item.responsaveis.includes(filters.value.responsavel));
+            return (filters.value.responsavel != null && item.responsavel.includes(filters.value.responsavel));
         });
     }
 

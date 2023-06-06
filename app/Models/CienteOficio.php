@@ -13,4 +13,14 @@ class CienteOficio extends Model
         'user_id',
         'oficio_id',
     ];
+
+    public function oficio()
+    {
+        return $this->hasOne(Oficio::class, 'id', 'oficio_id');
+    }
+
+    public function user()
+    {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
 }
