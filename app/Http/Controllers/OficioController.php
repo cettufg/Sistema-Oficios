@@ -175,6 +175,8 @@ class OficioController extends Controller
 
             //Cadastra os interessados
             foreach ($request['dados_recebidos']['interessados'] as $interessado) {
+                $user = User::find($interessado['id']);
+                SendMail::dispatch($oficio, $user);
                 $oficio->interessados()->create([
                     'user_id' => $interessado['id']
                 ]);
@@ -182,6 +184,8 @@ class OficioController extends Controller
 
             //Cadastra os responsaveis
             foreach ($request['dados_recebidos']['responsaveis'] as $responsavel) {
+                $user = User::find($interessado['id']);
+                SendMail::dispatch($oficio, $user);
                 $oficio->responsaveis()->create([
                     'user_id' => $responsavel['id']
                 ]);
@@ -249,6 +253,9 @@ class OficioController extends Controller
 
             //Cadastra os interessados
             foreach ($request['dados_expedidos']['interessados'] as $interessado) {
+                //send maisl for users
+                $user = User::find($interessado['id']);
+                SendMail::dispatch($oficio, $user);
                 $oficio->interessados()->create([
                     'user_id' => $interessado['id']
                 ]);
@@ -256,6 +263,8 @@ class OficioController extends Controller
 
             //Cadastra os responsaveis
             foreach ($request['dados_expedidos']['responsaveis'] as $responsavel) {
+                $user = User::find($interessado['id']);
+                SendMail::dispatch($oficio, $user);
                 $oficio->responsaveis()->create([
                     'user_id' => $interessado['id']
                 ]);

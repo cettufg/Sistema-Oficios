@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Jobs\LembreteOficio;
-use App\Models\Oficio;
 use App\Models\User;
+use App\Models\Oficio;
+use App\Jobs\LembreteOficio;
 
 class CronController extends Controller
 {
     public function index()
     {
-        $oficios = Oficio::with('destinatario')->with('interessados')->with('responsaveis')->where('etapa', '!=', 'Finalizado')->where('etapa', '!=', null)->get();
+        $oficios = Oficio::with('destinatario', 'interessados', 'responsaveis')->where('etapa', '!=', 'Finalizado')->where('etapa', '!=', null)->get();
 
         foreach ($oficios as $oficio) {
             $this->sendResponsaveis($oficio, $oficio->responsaveis);

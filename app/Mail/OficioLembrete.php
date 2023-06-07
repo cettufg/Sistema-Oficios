@@ -8,26 +8,14 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Oficio;
 
 class OficioLembrete extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * The order instance.
-     *
-     * @var \App\Models\Oficio
-     */
-    public $oficio;
+    private $oficio;
 
-    /**
-     * Create a new message instance.
-     *
-     * @param  \App\Models\Oficio  $contact
-     * @return void
-     */
-    public function __construct(Oficio $oficio)
+    public function __construct($oficio)
     {
         $this->oficio = $oficio;
     }

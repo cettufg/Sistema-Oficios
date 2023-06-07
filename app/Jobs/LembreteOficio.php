@@ -10,8 +10,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OficioLembrete;
-use App\Models\Oficio;
-use App\Models\User;
 
 class LembreteOficio implements ShouldQueue
 {
@@ -23,7 +21,7 @@ class LembreteOficio implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(Oficio $oficio, User $usuario)
+    public function __construct($oficio, $usuario)
     {
         $this->oficio = $oficio;
         $this->usuario = $usuario;
@@ -32,7 +30,7 @@ class LembreteOficio implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void
+    public function handle()
     {
         Mail::to($this->usuario->email)->send(new OficioLembrete($this->oficio));
     }

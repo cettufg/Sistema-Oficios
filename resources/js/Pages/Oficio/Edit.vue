@@ -40,7 +40,7 @@
                             <InputLabel required value="Tipo de Documento" />
                             <q-select v-model="form.dados_recebidos.tipo_documento"
                                 outlined
-                                :options="['OFÍCIO', 'NOTÍFICAÇÃO', 'MANIFESTAÇÃO', 'OFÍCIO CIRCULAR', 'DESPACHO']"
+                                :options="['OFÍCIO', 'NOTIFICAÇÃO', 'MANIFESTAÇÃO', 'OFÍCIO CIRCULAR', 'DESPACHO']"
                                 :error-message="form.errors['dados_recebidos.tipo_documento']" :error="!!form.errors['dados_recebidos.tipo_documento']"
                             />
                         </div>

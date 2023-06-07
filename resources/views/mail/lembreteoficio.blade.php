@@ -65,7 +65,7 @@
 <body>
     <div class="container">
         <div class="logotipo">
-            <img src="https://i.ibb.co/JRZsk2Q/logotipo.png" alt="Logotipo" width="220px">
+            <img src="https://oficios2.cett.org.br/logotipo/logotipo.png" alt="Logotipo" width="220px">
         </div>
         <div>
             <p class="destaque">Olá, existe um ofício que precisa de sua atenção!</p>
