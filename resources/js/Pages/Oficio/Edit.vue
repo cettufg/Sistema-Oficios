@@ -40,7 +40,7 @@
                             <InputLabel required value="Tipo de Documento" />
                             <q-select v-model="form.dados_recebidos.tipo_documento"
                                 outlined
-                                :options="['Ofício', 'Notificação', 'Manifestação', 'Ofício Circular', 'Despacho']"
+                                :options="['OFÍCIO', 'NOTÍFICAÇÃO', 'MANIFESTAÇÃO', 'OFÍCIO CIRCULAR', 'DESPACHO']"
                                 :error-message="form.errors['dados_recebidos.tipo_documento']" :error="!!form.errors['dados_recebidos.tipo_documento']"
                             />
                         </div>
@@ -210,11 +210,20 @@
                                 <q-item v-for="(anexo, index) in anexos_novos" :key="index">
                                     <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
                                         {{ anexo.nome }}
-                                        <PrimaryButton
-                                            @click="destroyArquivo(index, anexo.id)"
-                                            class="tw-p-2 tw-text-negative"
-                                            icon="ic:baseline-delete"
-                                        />
+                                        <div class="tw-flex tw-gap-2">
+                                            <a
+                                                :href="url + '/storage/' + anexo.caminho"
+                                                target="_blank"
+                                                class="tw-p-2 tw-text-info"
+                                            >
+                                                Visualizar
+                                            </a>
+                                            <PrimaryButton
+                                                @click="destroyArquivo(index, anexo.id)"
+                                                class="tw-p-2 tw-text-negative"
+                                                icon="ic:baseline-delete"
+                                            />
+                                        </div>
                                     </div>
                                 </q-item>
                             </q-list>
@@ -522,6 +531,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import PrimaryLink from '@/Components/PrimaryLink.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
@@ -660,6 +670,7 @@ const options_interessados = ref([]);
 const options_destinatario = ref([]);
 const options_diretoria = ref([]);
 const options_oficio_relacionado = ref([]);
+const url = window.location.href.split('/oficio/edit')[0];
 
 const options_filter_destinatario = ref(options_destinatario.value)
 const options_filter_responsaveis = ref(options_responsaveis.value)

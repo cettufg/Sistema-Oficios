@@ -48,7 +48,9 @@ class UsuarioController extends Controller
     {
         $usuario = User::find($id);
 
-        $usuario->delete();
+        $usuario->status = 0;
+
+        $usuario->save();
 
         return redirect()->back()->with('response', $usuario);
     }

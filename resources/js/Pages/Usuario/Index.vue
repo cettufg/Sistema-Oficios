@@ -23,8 +23,9 @@
                             <span class="tw-text-white tw-rounded-2xl tw-p-2" :class="{
                                 'tw-bg-positive': props.row.status == 1,
                                 'tw-bg-negative': props.row.status == 2,
+                                'tw-bg-gray-500': props.row.status == 0,
                             }">
-                                {{ props.row.status == 1 ? 'Ativo' : 'Inativo' }}
+                                {{props.row.status == 1 ? 'Ativo' : props.row.status == 2 ? 'Inativo' : 'Lixeira'}}
                             </span>
                         </div>
                         <div v-else-if="props.col.name == 'actions'">
@@ -273,6 +274,10 @@ const optionsStatus = [
     {
         label: 'Inativo',
         value: 2
+    },
+    {
+        label: 'Lixeira',
+        value: 0
     }
 ]
 
@@ -292,7 +297,7 @@ function openModalAction(type, data = []){
         form.name = data.name;
         form.email = data.email;
         form.status = {
-            label: data.status == 1 ? 'Ativo' : 'Inativo',
+            label: data.status == 1 ? 'Ativo' : data.status == 2 ? 'Inativo' : 'Lixeira',
             value: data.status
         };
         form.is_admin = {

@@ -222,7 +222,7 @@
 
                     <template v-slot:top-left>
                         <div class="tw-flex tw-my-5 sm:tw-my-0">
-                            <button v-if="$page.props.auth.user.is_admin" :disabled="selected.length == 0" class="tw-rounded-full tw-bg-red-500 tw-text-white tw-text-xl tw-p-2 hover:tw-bg-red-200 hover:tw-text-black" @click="destroyAll(selected)">
+                            <button v-if="$page.props.auth.user.is_admin" :disabled="selected.length == 0" class="tw-rounded-full tw-bg-red-500 tw-text-white tw-text-xl tw-p-2 hover:tw-bg-red-200 hover:tw-text-black" @click="openDestroyAll(selected)">
                                 <Icon icon="uil:trash" />
                             </button>
 
@@ -276,12 +276,96 @@
 
                 </q-table>
             </div>
+
+            <!-- =======  Modal Excluir =============-->
+            <q-dialog v-model="openModalDelete">
+                <q-card style="width: 700px; max-width: 80vw;">
+                    <q-card-section>
+                        <div class="tw-text-2xl">Deletar Dados</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                            <div>
+                                Você quer mesmo excluir esses dados?
+                            </div>
+                        </div>
+                        <div v-else class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
+                        </div>
+                    </q-card-section>
+
+                    <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
+                        <PrimaryButton
+                            @click="destroyData()"
+                            :disabled="form.processing"
+                            background="negative"
+                            class="tw-px-3 tw-py-2"
+                            text="Excluir"
+                            icon="uil:trash"
+                        />
+                        <PrimaryButton
+                            v-close-popup
+                            :disabled="form.processing"
+                            background="info"
+                            class="tw-px-3 tw-py-2"
+                            text="Cancelar"
+                            icon="material-symbols:cancel-outline"
+                        />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
+
+            <q-dialog v-model="openModalDeleteAll">
+                <q-card style="width: 700px; max-width: 80vw;">
+                    <q-card-section>
+                        <div class="tw-text-2xl">Deletar Dados</div>
+                    </q-card-section>
+
+                    <q-card-section>
+                        <div v-if="!form.processing" class="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-gap-4">
+                            <div>
+                                Você quer mesmo excluir esses dados?
+                            </div>
+                        </div>
+                        <div v-else class="tw-flex tw-items-center tw-justify-center tw-py-2">
+                            <q-spinner
+                                color="primary"
+                                size="3em"
+                            />
+                        </div>
+                    </q-card-section>
+
+                    <q-card-actions align="left" class="tw-ml-2 tw-mb-3 tw-space-x-4">
+                        <PrimaryButton
+                            @click="destroyAll()"
+                            :disabled="form.processing"
+                            background="negative"
+                            class="tw-px-3 tw-py-2"
+                            text="Excluir"
+                            icon="uil:trash"
+                        />
+                        <PrimaryButton
+                            v-close-popup
+                            :disabled="form.processing"
+                            background="info"
+                            class="tw-px-3 tw-py-2"
+                            text="Cancelar"
+                            icon="material-symbols:cancel-outline"
+                        />
+                    </q-card-actions>
+                </q-card>
+            </q-dialog>
         </div>
     </AuthenticatedLayout>
 </template>
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 import PrimaryLink from '@/Components/PrimaryLink.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
@@ -296,6 +380,8 @@ const props = defineProps({
 const selected = ref([]);
 const filter = ref('');
 const rows = ref([]);
+const openModalDelete = ref(false);
+const openModalDeleteAll = ref(false);
 const initialPagination = ref({
     sortBy: 'desc',
     descending: false,
@@ -371,9 +457,9 @@ onMounted(() => {
         filters.value.tipo_documento = sessionStorage.getItem('filters.tipo_documento');
         filtrar(filters.value.tipo_documento, 'tipo_documento');
     }
-    if(sessionStorage.getItem('filters.numero_documento') && sessionStorage.getItem('filters.numero_documento') != 'null'){
-        filters.value.numero_documento = sessionStorage.getItem('filters.numero_documento');
-        filtrar(filters.value.numero_documento, 'numero_documento');
+    if(sessionStorage.getItem('filters.numero_oficio') && sessionStorage.getItem('filters.numero_oficio') != 'null'){
+        filters.value.numero_oficio = sessionStorage.getItem('filters.numero_oficio');
+        filtrar(filters.value.numero_oficio, 'numero_documento');
     }
     if(sessionStorage.getItem('filters.destinatario') && sessionStorage.getItem('filters.destinatario') != 'null'){
         filters.value.destinatario = sessionStorage.getItem('filters.destinatario');
@@ -393,8 +479,7 @@ onMounted(() => {
     }
 });
 
-function loadList()
-{
+function loadList(){
     rows.value = props.oficios;
 
     rows.value.forEach((oficio) => {
@@ -498,33 +583,55 @@ const filters = ref({
     etapa: null,
 });
 
-function destroyAll(items)
-{
-    form.selecteds = items;
-
+function destroyAll(){
     form.delete(route('oficio.destroySelected'),{
         preserveScroll: true,
         onSuccess: (response) => {
-            rows.value = response.props.oficios;
+            props.oficios = response.props.oficios;
+            openModalDeleteAll.value = false;
+            loadList();
             Notify.create({
                 message: 'Ofícios excluídos com sucesso!',
                 type: 'positive',
             });
         },
-        onError: () => '',
-        onFinish: () => '',
+        onError: () => {
+            Notify.create({
+                message: 'Erro ao excluir ofícios!',
+                type: 'negative',
+            });
+        }
     });
 }
 
-function destroy()
-{
+function destroyItem(data = []){
+    form.id = data.id;
+    openModalDelete.value = true;
+}
+
+function openDestroyAll(data = []){
+    form.selecteds = data;
+    openModalDeleteAll.value = true;
+}
+
+function destroyData(){
     form.delete(route('oficio.destroy', form.id),{
         preserveScroll: true,
         onSuccess: (response) => {
-            rows.value = response.props.oficios;
+            props.oficios = response.props.oficios;
+            loadList();
+            openModalDelete.value = false;
+            Notify.create({
+                message: 'Ofício excluído com sucesso!',
+                type: 'positive',
+            });
         },
-        onError: () => '',
-        onFinish: () => '',
+        onError: () => {
+            Notify.create({
+                message: 'Erro ao excluir o ofício!',
+                type: 'negative',
+            });
+        }
     });
 }
 

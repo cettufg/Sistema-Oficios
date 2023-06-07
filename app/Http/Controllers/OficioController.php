@@ -263,7 +263,7 @@ class OficioController extends Controller
         }
 
         //Cadastra os ofícios relacionados
-        if(array_key_exists('oficio_relacionado', $request->all())){
+        if(array_key_exists('oficio_relacionado', $request->all())) {
             foreach ($request['oficio_relacionado'] as $oficio_relacionado) {
                 $oficio->oficios_relacionados()->create([
                     'oficio_filho' => $oficio_relacionado['id']
@@ -272,7 +272,7 @@ class OficioController extends Controller
         }
 
         //Cadastra os ofícios externos
-        if(array_key_exists('oficio_externo', $request->all())){
+        if(array_key_exists('oficio_externo', $request->all())) {
             foreach ($request['oficio_externo'] as $oficio_externo) {
                 $oficio->oficios_externos()->create([
                     'descricao' => $oficio_externo
@@ -292,7 +292,8 @@ class OficioController extends Controller
         ]);
 
         if ($request->input('tipo_oficio') == 'Recebido') {
-            $request->validate([
+            $request->validate(
+                [
                 'dados_recebidos.responsaveis' => 'required',
                 'dados_recebidos.interessados' => 'required',
                 'dados_recebidos.tipo_documento' => 'required',
@@ -310,13 +311,15 @@ class OficioController extends Controller
                 'dados_recebidos.data_prazo' => 'required|date',
                 'dados_recebidos.anexos' => 'nullable',
             ],
-            [
+                [
                 'dados_recebidos.*.required' => 'Campo obrigatório',
                 'dados_recebidos.*.string' => 'Você deve informar dados válidos',
                 'dados_recebidos.*.date' => 'Você deve informar uma data válida',
-            ]);
+            ]
+            );
         } else {
-            $request->validate([
+            $request->validate(
+                [
                 'dados_expedidos.diretoria' => 'required',
                 'dados_expedidos.responsaveis' => 'required',
                 'dados_expedidos.interessados' => 'required',
@@ -334,11 +337,12 @@ class OficioController extends Controller
                 'dados_expedidos.numero_notificacao' => 'required',
                 'dados_expedidos.anexos' => 'nullable',
             ],
-            [
+                [
                 'dados_expedidos.*.required' => 'Campo obrigatório',
                 'dados_expedidos.*.string' => 'Você deve informar dados válidos',
                 'dados_expedidos.*.date' => 'Você deve informar uma data válida',
-            ]);
+            ]
+            );
         }
 
         //Valida a lógica de atualizações
@@ -504,7 +508,7 @@ class OficioController extends Controller
 
         //Cadastra os ofícios relacionados
         $oficio->oficios_relacionados()->delete();
-        if(array_key_exists('oficio_relacionado', $request->all())){
+        if(array_key_exists('oficio_relacionado', $request->all())) {
             foreach ($request['oficio_relacionado'] as $oficio_relacionado) {
                 $oficio->oficios_relacionados()->create([
                     'oficio_filho' => $oficio_relacionado['id']
@@ -514,11 +518,17 @@ class OficioController extends Controller
 
         //Cadastra os ofícios externos
         $oficio->oficios_externos()->delete();
-        if(array_key_exists('oficio_externo', $request->all())){
+        if(array_key_exists('oficio_externo', $request->all())) {
             foreach ($request['oficio_externo'] as $oficio_externo) {
-                $oficio->oficios_externos()->create([
-                    'descricao' => $oficio_externo
-                ]);
+                if(gettype($oficio_externo) == 'string') {
+                    $oficio->oficios_externos()->create([
+                        'descricao' => $oficio_externo
+                    ]);
+                } else {
+                    $oficio->oficios_externos()->create([
+                        'descricao' => $oficio_externo['label']
+                    ]);
+                }
             }
         }
 
@@ -643,15 +653,17 @@ class OficioController extends Controller
         if (count($dados) > 0) {
             foreach ($dados as $oficio) {
                 $oficioBD = Oficio::where('id', $oficio['id'])->with('anexos', 'cientes', 'diretorias', 'interessados', 'responsaveis', 'oficios_externos', 'oficios_relacionados')->get();
-                if ($oficioBD) {
+                if (count($oficioBD) > 0) {
                     //Exclui os Anexos vinculados
+                    $oficioBD = $oficioBD[0];
+
                     foreach ($oficioBD->anexos as $anexo) {
                         Storage::disk('public')->delete($anexo->caminho);
                         $anexo->delete();
                     }
 
                     $oficioBD->cientes()->delete();
-                    $oficioBD->diretores()->delete();
+                    $oficioBD->diretorias()->delete();
                     $oficioBD->responsaveis()->delete();
                     $oficioBD->interessados()->delete();
                     $oficioBD->oficios_externos()->delete();
@@ -662,7 +674,19 @@ class OficioController extends Controller
             }
         }
 
-        $oficios = Oficio::with('destinatario')->with('responsaveis', 'anexos')->get();
+        $logged_user = auth()->user()->id;
+
+        $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
+        //filter for user logged
+        ->whereHas('responsaveis', function ($query) use ($logged_user) {
+            $query->where('user_id', $logged_user);
+        })
+        ->orWhereHas('interessados', function ($query) use ($logged_user) {
+            $query->where('user_id', $logged_user);
+        })
+        ->orWhere('user_created', $logged_user)
+        ->latest()
+        ->get();
 
         return redirect()->back()->with('response', $oficios);
     }

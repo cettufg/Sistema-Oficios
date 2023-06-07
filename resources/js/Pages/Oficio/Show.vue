@@ -162,7 +162,7 @@
 
                 </div>
 
-                <div class="tw-w-full tw-mt-5 tw-flex tw-flex-col tw-gap-2">
+                <div class="tw-w-full tw-mt-5 tw-flex tw-flex-col tw-gap-2" v-if="oficio.anexos.length > 0">
                     <span class="tw-text-2xl tw-font-bold">Anexos</span>
                     <q-list bordered separator>
                         <q-item v-for="(anexo, index) in oficio.anexos" :key="index" clickable v-ripple>
@@ -211,11 +211,11 @@
                         <q-btn
                             color="info"
                             label="Dar ciência"
-                            v-if="ciente == false"
+                            v-if="!ciente"
                             @click="darCiencia()"
                         />
                     </div>
-                    <q-list bordered separator>
+                    <q-list bordered separator v-if="oficio.cientes.length > 0">
                         <q-item clickable v-ripple v-for="(ciencia, index) in oficio.cientes" :key="index">
                             <div class="tw-w-full tw-flex tw-items-center tw-justify-between">
                                 <div class="tw-w-full tw-flex tw-flex-col tw-items-start tw-justify-center">
@@ -225,6 +225,9 @@
                             </div>
                         </q-item>
                     </q-list>
+                    <div v-else>
+                        <span class="tw-text-lg">Ninguém deu ciência.</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -233,7 +236,7 @@
 
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref, onMounted } from 'vue';
 import { Icon } from '@iconify/vue';
 import { Notify } from 'quasar';
@@ -245,31 +248,38 @@ const props = defineProps({
         type: Object
     }
 })
-const oficio = props.oficio[0];
+const oficio = ref(props.oficio[0]);
 const ciente = ref(false);
+const page = usePage();
 
 onMounted(() => {
-    if(oficio.tipo_oficio == 'Expedido'){
-        oficio.diretorias.forEach((diretoria) => {
+    if(oficio.value.tipo_oficio == 'Expedido'){
+        oficio.value.diretorias.forEach((diretoria) => {
             optionsDiretoria.value.push(diretoria.diretoria.nome)
         })
 
-        oficio.data_emissao = oficio.data_emissao.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
+        oficio.value.data_emissao = oficio.value.data_emissao.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
     }else{
-        oficio.data_recebimento = oficio.data_recebimento.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
+        oficio.value.data_recebimento = oficio.value.data_recebimento.replace(/(\d*)-(\d*)-(\d*).*/, '$3/$2/$1');
     }
 
-    oficio.responsaveis.forEach((responsavel) => {
+    oficio.value.responsaveis.forEach((responsavel) => {
         optionsResponsaveis.value.push(responsavel.user.name)
     })
 
-    oficio.interessados.forEach((interessado) => {
+    oficio.value.interessados.forEach((interessado) => {
         optionsInteressados.value.push(interessado.user.name)
     })
 
-    oficio.dias_corridos = oficio.dias_corridos == 0 ? 'Não' : 'Sim';
+    oficio.value.dias_corridos = oficio.value.dias_corridos == 0 ? 'Não' : 'Sim';
 
-    form.id = oficio.id;
+    form.id = oficio.value.id;
+
+    oficio.value.cientes.forEach((item) => {
+        if(item.user_id == page.props.auth.user.id){
+            ciente.value = true;
+        }
+    })
 });
 
 const form = useForm({
@@ -279,11 +289,11 @@ const optionsDiretoria = ref([]);
 const optionsResponsaveis = ref([]);
 const optionsInteressados = ref([]);
 
-function darCiencia()
-{
+function darCiencia(){
     form.post(route('oficio.ciencia', form.id), {
         preserveScroll: true,
-        onSuccess: () => {
+        onSuccess: (response) => {
+            oficio.value = response.props.oficio[0];
             ciente.value = true;
             Notify.create({
                 message: 'Ciência dada com sucesso!',
