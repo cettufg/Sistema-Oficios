@@ -26,17 +26,23 @@ class OficioController extends Controller
     {
         $logged_user = auth()->user()->id;
 
-        $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
-        //filter for user logged
-        ->whereHas('responsaveis', function ($query) use ($logged_user) {
-            $query->where('user_id', $logged_user);
-        })
-        ->orWhereHas('interessados', function ($query) use ($logged_user) {
-            $query->where('user_id', $logged_user);
-        })
-        ->orWhere('user_created', $logged_user)
-        ->latest()
-        ->get();
+        if(auth()->user()->is_admin == 1){
+            $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
+            ->latest()
+            ->get();
+        }else{
+            $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
+            //filter for user logged
+            ->whereHas('responsaveis', function ($query) use ($logged_user) {
+                $query->where('user_id', $logged_user);
+            })
+            ->orWhereHas('interessados', function ($query) use ($logged_user) {
+                $query->where('user_id', $logged_user);
+            })
+            ->orWhere('user_created', $logged_user)
+            ->latest()
+            ->get();
+        }
 
 
         return Inertia::render('Oficio/Index', [

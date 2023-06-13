@@ -46,7 +46,7 @@
                                     icon="tabler:edit"
                                 />
                                 <PrimaryButton
-                                    v-if="props.row.user_created == $page.props.auth.user.id"
+                                    v-if="props.row.user_created == $page.props.auth.user.id || $page.props.auth.user.is_admin == 1"
                                     @click="openModalAction(3, props.row)"
                                     class="tw-p-2"
                                     background="negative"
