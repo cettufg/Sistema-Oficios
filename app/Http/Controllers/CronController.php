@@ -11,11 +11,12 @@ class CronController extends Controller
     public function index()
     {
         $oficios = Oficio::with('destinatario', 'interessados', 'responsaveis')->where('etapa', '!=', 'Finalizado')->where('etapa', '!=', null)->get();
-
         foreach ($oficios as $oficio) {
             $this->sendResponsaveis($oficio, $oficio->responsaveis);
             $this->sendInteressados($oficio, $oficio->interessados);
         }
+
+        return 'ok';
     }
 
     public function sendResponsaveis($oficio, $responsaveis)
@@ -23,6 +24,7 @@ class CronController extends Controller
         foreach($responsaveis as $responsavel) {
             $usuario = User::find($responsavel->user_id);
             LembreteOficio::dispatch($oficio, $usuario);
+            dd($responsavel, $oficio);
         }
     }
 
