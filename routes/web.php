@@ -93,7 +93,7 @@ Route::group([
 Route::group([
     'prefix' => '/cron',
 ], function () {
-    Route::get('/', [CronController::class, 'index'])->name('cron.index');
+    Route::get('/{hash}', [CronController::class, 'index'])->name('cron.index');
 });
 
 require __DIR__.'/auth.php';

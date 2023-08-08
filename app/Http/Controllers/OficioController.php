@@ -26,11 +26,11 @@ class OficioController extends Controller
     {
         $logged_user = auth()->user()->id;
 
-        if(auth()->user()->is_admin == 1){
+        if(auth()->user()->is_admin == 1) {
             $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
             ->latest()
             ->get();
-        }else{
+        } else {
             $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
             //filter for user logged
             ->whereHas('responsaveis', function ($query) use ($logged_user) {
@@ -129,8 +129,13 @@ class OficioController extends Controller
             $intervaloPadrao = $data_inicio->diff($data_final);
             $intervaloAtual = $data_inicio->diff($data_atual);
             $prazoPadrao = $intervaloPadrao->d;
-            $prazoAtual = $intervaloAtual->d;
-            $prazo = $prazoPadrao - $prazoAtual;
+
+            if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+                $prazo = $intervaloPadrao->d;
+            } else {
+                $prazoAtual = $intervaloAtual->d;
+                $prazo = $prazoPadrao - $prazoAtual;
+            }
 
             $etapa = '';
 
@@ -204,8 +209,13 @@ class OficioController extends Controller
             $intervaloPadrao = $data_inicio->diff($data_final);
             $intervaloAtual = $data_inicio->diff($data_atual);
             $prazoPadrao = $intervaloPadrao->d;
-            $prazoAtual = $intervaloAtual->d;
-            $prazo = $prazoPadrao - $prazoAtual;
+
+            if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+                $prazo = $intervaloPadrao->d;
+            } else {
+                $prazoAtual = $intervaloAtual->d;
+                $prazo = $prazoPadrao - $prazoAtual;
+            }
 
             $etapa = '';
 
@@ -367,11 +377,18 @@ class OficioController extends Controller
             $data_inicio = new \DateTime($request->input('dados_recebidos.data_recebimento'));
             $data_final = new \DateTime($request->input('dados_recebidos.data_prazo'));
             $data_atual = new \DateTime();
+
             $intervaloPadrao = $data_inicio->diff($data_final);
             $intervaloAtual = $data_inicio->diff($data_atual);
             $prazoPadrao = $intervaloPadrao->d;
-            $prazoAtual = $intervaloAtual->d;
-            $prazo = $prazoPadrao - $prazoAtual;
+
+            if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+                $prazo = $intervaloPadrao->d;
+            } else {
+                $prazoAtual = $intervaloAtual->d;
+                $prazo = $prazoPadrao - $prazoAtual;
+            }
+
 
             $etapa = '';
 
@@ -447,8 +464,13 @@ class OficioController extends Controller
             $intervaloPadrao = $data_inicio->diff($data_final);
             $intervaloAtual = $data_inicio->diff($data_atual);
             $prazoPadrao = $intervaloPadrao->d;
-            $prazoAtual = $intervaloAtual->d;
-            $prazo = $prazoPadrao - $prazoAtual;
+
+            if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+                $prazo = $intervaloPadrao->d;
+            } else {
+                $prazoAtual = $intervaloAtual->d;
+                $prazo = $prazoPadrao - $prazoAtual;
+            }
 
             $etapa = '';
 
@@ -765,13 +787,18 @@ class OficioController extends Controller
                 } else {
                     $data_inicio = new \DateTime($oficio->data_emissao);
                 }
-                $data_final = new \DateTime($oficio->data_prazo);
                 $data_atual = new \DateTime();
+                $data_final = new \DateTime($oficio->data_prazo);
                 $intervaloPadrao = $data_inicio->diff($data_final);
                 $intervaloAtual = $data_inicio->diff($data_atual);
                 $prazoPadrao = $intervaloPadrao->d;
-                $prazoAtual = $intervaloAtual->d;
-                $prazo = $prazoPadrao - $prazoAtual;
+
+                if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+                    $prazo = $intervaloPadrao->d;
+                } else {
+                    $prazoAtual = $intervaloAtual->d;
+                    $prazo = $prazoPadrao - $prazoAtual;
+                }
 
                 if ($oficio->etapa != 'Finalizado') {
                     $oficio->prazo = $prazo;
