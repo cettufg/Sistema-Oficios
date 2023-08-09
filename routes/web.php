@@ -52,8 +52,6 @@ Route::group([
         Route::delete('/selected', [OficioController::class, 'destroySelected'])->name('oficio.destroySelected');
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
-
-        Route::get('/generateprazo', [OficioController::class, 'generateprazo'])->name('oficio.generateprazo');
     });
 
 
@@ -93,6 +91,7 @@ Route::group([
 Route::group([
     'prefix' => '/cron',
 ], function () {
+    Route::get('/prazo/{hash}', [CronController::class, 'generateprazo'])->name('cron.generateprazo');
     Route::get('/{hash}', [CronController::class, 'index'])->name('cron.index');
 });
 
