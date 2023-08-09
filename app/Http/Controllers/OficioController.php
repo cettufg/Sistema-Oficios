@@ -678,7 +678,6 @@ class OficioController extends Controller
         ]);
     }
 
-
     public function destroySelected(Request $request)
     {
         $request->validate([
