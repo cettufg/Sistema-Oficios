@@ -52,6 +52,8 @@ Route::group([
         Route::delete('/selected', [OficioController::class, 'destroySelected'])->name('oficio.destroySelected');
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
+
+        Route::get('/teste', [OficioController::class, 'teste'])->name('oficio.teste');
     });
 
 

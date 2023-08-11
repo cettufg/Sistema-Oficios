@@ -2,23 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Inertia\Inertia;
+use App\Jobs\SendMail;
+use App\Models\Oficio;
+use App\Models\Diretoria;
+use App\Models\AnexoOficio;
+use Illuminate\Support\Str;
+use App\Models\CienteOficio;
 use App\Models\Destinatario;
 use Illuminate\Http\Request;
-use App\Models\Oficio;
-use App\Models\DiretoriaOficio;
 use App\Models\OficioExterno;
+use App\Models\DiretoriaOficio;
 use App\Models\OficioRelacionado;
-use App\Models\InteressadosOficio;
 use App\Models\ResponsavelOficio;
-use App\Models\CienteOficio;
-use App\Models\AnexoOficio;
-use App\Models\Diretoria;
-use App\Models\User;
-use Illuminate\Support\Facades\Redirect;
+use App\Jobs\LembreteInteressados;
+use App\Jobs\LembreteResponsaveis;
+use App\Models\InteressadosOficio;
 use Illuminate\Support\Facades\Storage;
-use App\Jobs\SendMail;
-use Illuminate\Support\Str;
-use Inertia\Inertia;
+use Illuminate\Support\Facades\Redirect;
 
 class OficioController extends Controller
 {
@@ -782,5 +784,20 @@ class OficioController extends Controller
         ->get();
 
         return view('mail.novooficio', compact('oficio'));
+    }
+
+    public function teste()
+    {
+        $oficios = Oficio::with('destinatario', 'interessados', 'responsaveis')->where('etapa', '!=', 'Finalizado')->where('etapa', '!=', null)->get();
+        foreach ($oficios as $oficio) {
+            if(count($oficio->interessados) > 0) {
+                LembreteInteressados::dispatch($oficio, $oficio->interessados);
+            }
+            if(count($oficio->responsaveis) > 0) {
+                LembreteResponsaveis::dispatch($oficio, $oficio->responsaveis);
+            }
+        }
+
+        return 'ok';
     }
 }
