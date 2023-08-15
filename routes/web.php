@@ -48,8 +48,8 @@ Route::group([
         Route::delete('/anexo/{id}', [OficioController::class, 'destroyAnexo'])->name('oficio.destroyAnexo');
         Route::get('/email/{id}', [OficioController::class, 'email'])->name('oficio.email');
 
-        Route::delete('/', [OficioController::class, 'destroy'])->name('oficio.destroy');
-        Route::delete('/selected', [OficioController::class, 'destroySelected'])->name('oficio.destroySelected');
+        Route::delete('/{id}', [OficioController::class, 'destroy'])->name('oficio.destroy');
+        Route::delete('/', [OficioController::class, 'destroySelected'])->name('oficio.destroySelected');
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
 

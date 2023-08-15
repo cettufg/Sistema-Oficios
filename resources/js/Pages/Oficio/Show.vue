@@ -211,7 +211,7 @@
                         <q-btn
                             color="info"
                             label="Dar ciência"
-                            v-if="!ciente"
+                            v-if="!ciente && oficio.etapa != 'Finalizado'"
                             @click="darCiencia()"
                         />
                     </div>
