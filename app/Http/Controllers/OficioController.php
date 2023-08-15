@@ -142,7 +142,7 @@ class OficioController extends Controller
         //Valida a lógica de cadastros
         if ($request->input('tipo_oficio') == 'Recebido') {
             $data_inicio = new \DateTime($request->input('data_recebimento'));
-        }else{
+        } else {
             $data_inicio = new \DateTime($request->input('data_emissao'));
         }
 
@@ -307,11 +307,11 @@ class OficioController extends Controller
         }
 
         $oficio = Oficio::find($id);
-        if($oficio){
+        if($oficio) {
             //Valida a lógica de cadastros
             if ($request->input('tipo_oficio') == 'Recebido') {
                 $data_inicio = new \DateTime($request->input('data_recebimento'));
-            }else{
+            } else {
                 $data_inicio = new \DateTime($request->input('data_emissao'));
             }
 
