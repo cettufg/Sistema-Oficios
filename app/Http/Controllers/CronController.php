@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Oficio;
-use App\Jobs\LembreteOficio;
 use App\Jobs\LembreteInteressados;
 use App\Jobs\LembreteResponsaveis;
 
