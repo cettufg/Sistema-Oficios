@@ -1,5 +1,5 @@
 <template>
-    <Head :title="typeAction == 'editar' ? 'Editar Ofício' : 'Adicionar Ofício'" />
+    <Head :title="typeAction == 'edit' ? 'Editar Ofício' : 'Adicionar Ofício'" />
 
     <AuthenticatedLayout>
         <div class="tw-py-12 tw-px-5 md:tw-px-20">
