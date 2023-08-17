@@ -193,11 +193,16 @@ class OficioController extends Controller
                     if ($file->isValid()) {
                         $tamanho = $file->getSize();
                         $tipo = $file->getMimeType();
-                        $arqname = $file->getClientOriginalName();
-                        $caminho = $file->storeAs('anexos', $arqname);
+
+                        // Remove caracteres inválidos, substituindo por um underscore
+                        $cleaned_file_name = preg_replace('/[^a-zA-Z0-9.\-_]/', '_', $file->getClientOriginalName());
+                        // Remove múltiplos underscores consecutivos e espaços
+                        $cleaned_file_name = preg_replace('/[\-_\. ]+/', '_', $cleaned_file_name);
+
+                        $caminho = $file->storeAs('anexos', $cleaned_file_name);
 
                         AnexoOficio::create([
-                            'nome' => $arqname,
+                            'nome' => $file->getClientOriginalName(),
                             'tipo' => $tipo,
                             'tamanho' => $tamanho,
                             'caminho' => $caminho,
