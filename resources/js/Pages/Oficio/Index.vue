@@ -670,7 +670,6 @@ function filterPrazo(val, update){
 }
 
 function filterNumeroOficio(val, update){
-    console.log(val);
     if (val === '') {
         update(() => {
             optionsFiltred.value.numero_oficio = optionsFilters.value.numero_oficio
