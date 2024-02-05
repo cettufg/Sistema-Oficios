@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Status;
 use Illuminate\Http\Request;
 use App\Models\Destinatario;
 use Inertia\Inertia;
@@ -10,7 +11,7 @@ class DestinatarioController extends Controller
 {
     public function index()
     {
-        $destinatarios = Destinatario::all();
+        $destinatarios = Destinatario::active()->get();
 
         return Inertia::render('Destinatario/Index', [
             'destinatarios' => $destinatarios
@@ -24,17 +25,16 @@ class DestinatarioController extends Controller
             'status' => 'required'
         ]);
 
-        //Cadastra os dados
-        $destinatario = Destinatario::create([
+        Destinatario::create([
             'nome' => $request->input('nome'),
             'status' => $request->input('status.value'),
             'user_created' => auth()->user()->id
         ]);
 
-        return redirect()->back()->with('respone', $destinatario);
+        return redirect()->back();
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'nome' => 'required',
@@ -42,34 +42,35 @@ class DestinatarioController extends Controller
         ]);
 
         //Cadastra os dados
-        $destinatario = Destinatario::find($id);
+        $destinatario = Destinatario::findOrFail($id);
         $destinatario->nome = $request->input('nome');
         $destinatario->status = $request->input('status.value');
         $destinatario->user_updated = auth()->user()->id;
         $destinatario->save();
 
-        return redirect()->back()->with('respone', $destinatario);
+        return redirect()->back();
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $destinatario = Destinatario::findOrFail($id);
-        $destinatario->delete();
+        $destinatario->status = Status::TRASH;
+        $destinatario->user_updated = auth()->user()->id;
+        $destinatario->save();
 
-        return redirect()->back()->with('respone', $destinatario);
+        return redirect()->back();
 
     }
-
 
     public function destroySelected(Request $request)
     {
         foreach($request->selected as $destinatario){
             $destinatarioDelete = Destinatario::findOrFail($destinatario['id']);
-            $destinatarioDelete->delete();
+            $destinatarioDelete->status = Status::TRASH;
+            $destinatarioDelete->user_updated = auth()->user()->id;
+            $destinatarioDelete->save();
         }
 
-        $destinatarios = Destinatario::all();
-
-        return redirect()->back()->with('respone', $destinatarios);
+        return redirect()->back();
     }
 }

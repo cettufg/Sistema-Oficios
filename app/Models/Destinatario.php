@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -21,4 +22,8 @@ class Destinatario extends Model
         return $this->hasMany(Oficio::class, 'destinatario_id', 'id');
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', Status::ATIVO);
+    }
 }

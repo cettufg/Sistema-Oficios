@@ -26,25 +26,22 @@ class OficioController extends Controller
 {
     public function index()
     {
-        $logged_user = auth()->user()->id;
+        $oficiosQuery = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')->latest();
 
-        if(auth()->user()->is_admin == 1) {
-            $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
-            ->latest()
-            ->get();
-        } else {
-            $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
-            //filter for user logged
-            ->whereHas('responsaveis', function ($query) use ($logged_user) {
-                $query->where('user_id', $logged_user);
-            })
-            ->orWhereHas('interessados', function ($query) use ($logged_user) {
-                $query->where('user_id', $logged_user);
-            })
-            ->orWhere('user_created', $logged_user)
-            ->latest()
-            ->get();
+        if(auth()->user()->is_admin !== 1) {
+            $logged_user = auth()->user()->id;
+            $oficiosQuery->where(function ($query) use ($logged_user) {
+                $query->whereHas('responsaveis', function ($query) use ($logged_user) {
+                    $query->where('user_id', $logged_user);
+                })
+                      ->orWhereHas('interessados', function ($query) use ($logged_user) {
+                          $query->where('user_id', $logged_user);
+                      })
+                      ->orWhere('user_created', $logged_user);
+            });
         }
+
+        $oficios = $oficiosQuery->get();
 
 
         return Inertia::render('Oficio/Index', [
@@ -54,9 +51,9 @@ class OficioController extends Controller
 
     public function create()
     {
-        $usuarios = User::all('id', 'name');
-        $destinatarios = Destinatario::select('id', 'nome')->where('status', 1)->get();
-        $diretorias = Diretoria::select('id', 'nome')->where('status', 1)->get();
+        $usuarios = User::active()->get();
+        $destinatarios = Destinatario::active()->get();
+        $diretorias = Diretoria::active()->get();
         $oficios = Oficio::all('id', 'numero_oficio', 'tipo_oficio');
 
         return Inertia::render('Oficio/Crud', [
@@ -67,17 +64,17 @@ class OficioController extends Controller
         ]);
     }
 
-    public function edit($id)
+    public function edit(int $id)
     {
-        $oficios = Oficio::select('id', 'numero_oficio', 'tipo_oficio')->where('id', '<>', $id)->get();
+        $oficiosBD = Oficio::with('destinatario', 'responsaveis.user:id,name', 'interessados.user:id,name', 'anexos', 'diretorias', 'oficios_externos', 'oficios_relacionados.oficio_filho:id,tipo_oficio,numero_oficio')
+                           ->get();
 
-        $oficio = Oficio::where('id', $id)
-        ->with('destinatario', 'responsaveis.user:id,name', 'interessados.user:id,name', 'anexos', 'diretorias', 'oficios_externos', 'oficios_relacionados.oficio_filho:id,tipo_oficio,numero_oficio')
-        ->first();
+        $oficios = $oficiosBD->where('id', '<>', $id);
+        $oficio = $oficiosBD->where('id', $id)->first();
 
-        $usuarios = User::all('id', 'name');
-        $destinatarios = Destinatario::select('id', 'nome')->where('status', 1)->get();
-        $diretorias = Diretoria::all('id', 'nome');
+        $usuarios = User::active()->get();
+        $destinatarios = Destinatario::active()->get();
+        $diretorias = Diretoria::active()->get();
 
         return Inertia::render('Oficio/Crud', [
             'oficios' => $oficios,
@@ -105,42 +102,16 @@ class OficioController extends Controller
             'etapa' => 'required',
             'anexos' => 'nullable',
             'assunto_oficio' => 'nullable',
-        ], [
-            '*.required' => 'Campo obrigatório.',
-            '*.date' => 'Você deve informar uma data válida',
+            'tipo_documento' => 'required_if:tipo_oficio,Recebido',
+            'data_recebimento' => 'required_if:tipo_oficio,Recebido|date',
+            'numero_notificacao' => 'required_unless:tipo_oficio,Recebido',
+            'diretoria' => 'required_unless:tipo_oficio,Recebido',
+            'data_emissao' =>'required_unless:tipo_oficio,Recebido|date',
+            'anexos.*' => 'nullable|file|max:10240',
         ]);
 
-        if ($request['tipo_oficio'] == 'Recebido') {
-            $request->validate([
-                'tipo_documento' => 'required',
-                'data_recebimento' => 'required|date',
-            ], [
-                '*.required' => 'Campo obrigatório',
-                '*.date' => 'Você deve informar uma data válida',
-            ]);
-        } else {
-            $request->validate([
-                'diretoria' => 'required',
-                'data_emissao' => 'required|date',
-                'numero_notificacao' => 'required',
-            ], [
-                '*.required' => 'Campo obrigatório',
-                '*.date' => 'Você deve informar uma data válida',
-            ]);
-        }
-
-        // validate anexos
-        if ($request['anexos'] != null) {
-            $request->validate([
-                'anexos.*' => 'file|max:10240',
-            ], [
-                '*.file' => 'Você deve informar um arquivo',
-                '*.max' => 'O tamanho máximo permitido é de 10MB',
-            ]);
-        }
-
         //Valida a lógica de cadastros
-        if ($request->input('tipo_oficio') == 'Recebido') {
+        if ($request->input('tipo_oficio') === 'Recebido') {
             $data_inicio = new \DateTime($request->input('data_recebimento'));
         } else {
             $data_inicio = new \DateTime($request->input('data_emissao'));
@@ -161,7 +132,7 @@ class OficioController extends Controller
 
         $etapa = '';
 
-        if ($prazo < 0 && $request->input('etapa') != 'Finalizado') {
+        if ($prazo < 0 && $request->input('etapa') !== 'Finalizado') {
             $etapa = 'Atrasado';
         } else {
             $etapa = $request->input('etapa');
@@ -277,150 +248,123 @@ class OficioController extends Controller
             'etapa' => 'required',
             'anexos' => 'nullable',
             'assunto_oficio' => 'nullable',
-        ], [
-            '*.required' => 'Campo obrigatório.',
-            '*.date' => 'Você deve informar uma data válida',
+            'tipo_documento' => 'required_if:tipo_oficio,Recebido',
+            'data_recebimento' => 'required_if:tipo_oficio,Recebido|date',
+            'numero_notificacao' => 'required_unless:tipo_oficio,Recebido',
+            'diretoria' => 'required_unless:tipo_oficio,Recebido',
+            'data_emissao' =>'required_unless:tipo_oficio,Recebido|date',
+            'anexos.*' => 'nullable|file|max:10240',
         ]);
 
-        if ($request['tipo_oficio'] == 'Recebido') {
-            $request->validate([
-                'tipo_documento' => 'required',
-                'data_recebimento' => 'required|date',
-            ], [
-                '*.required' => 'Campo obrigatório',
-                '*.date' => 'Você deve informar uma data válida',
-            ]);
+        $oficio = Oficio::findOrFail($id);
+
+        //Valida a lógica de cadastros
+        if ($request->input('tipo_oficio') == 'Recebido') {
+            $data_inicio = new \DateTime($request->input('data_recebimento'));
         } else {
-            $request->validate([
-                'diretoria' => 'required',
-                'data_emissao' => 'required|date',
-                'numero_notificacao' => 'required',
-            ], [
-                '*.required' => 'Campo obrigatório',
-                '*.date' => 'Você deve informar uma data válida',
-            ]);
+            $data_inicio = new \DateTime($request->input('data_emissao'));
         }
 
-        // validate anexos
-        if ($request['anexos'] != null) {
-            $request->validate([
-                'anexos.*' => 'file|max:10240',
-            ], [
-                '*.file' => 'Você deve informar um arquivo',
-                '*.max' => 'O tamanho máximo permitido é de 10MB',
-            ]);
+        $data_final = new \DateTime($request->input('data_prazo'));
+        $data_atual = new \DateTime();
+        $intervaloPadrao = $data_inicio->diff($data_final);
+        $intervaloAtual = $data_inicio->diff($data_atual);
+        $prazoPadrao = $intervaloPadrao->d;
+
+        if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
+            $prazo = $intervaloPadrao->d;
+        } else {
+            $prazoAtual = $intervaloAtual->d;
+            $prazo = $prazoPadrao - $prazoAtual;
         }
 
-        $oficio = Oficio::find($id);
-        if($oficio) {
-            //Valida a lógica de cadastros
-            if ($request->input('tipo_oficio') == 'Recebido') {
-                $data_inicio = new \DateTime($request->input('data_recebimento'));
-            } else {
-                $data_inicio = new \DateTime($request->input('data_emissao'));
-            }
+        $etapa = '';
 
-            $data_final = new \DateTime($request->input('data_prazo'));
-            $data_atual = new \DateTime();
-            $intervaloPadrao = $data_inicio->diff($data_final);
-            $intervaloAtual = $data_inicio->diff($data_atual);
-            $prazoPadrao = $intervaloPadrao->d;
+        if ($prazo < 0 && $request->input('etapa') != 'Finalizado') {
+            $etapa = 'Atrasado';
+        } else {
+            $etapa = $request->input('etapa');
+        }
 
-            if($intervaloAtual->invert == 1 && $intervaloAtual->d > 0) {
-                $prazo = $intervaloPadrao->d;
-            } else {
-                $prazoAtual = $intervaloAtual->d;
-                $prazo = $prazoPadrao - $prazoAtual;
-            }
+        $oficio->fill([
+            'destinatario_id' => $request->input('destinatario_id.id'),
+            'numero_oficio' => $request->input('numero_oficio'),
+            'assunto_oficio' => $request->input('assunto_oficio'),
+            'data_recebimento' => $request->input('data_recebimento'),
+            'data_emissao' => $request->input('data_emissao'),
+            'data_prazo' => $request->input('data_prazo'),
+            'prazo' => $prazo,
+            'dias_corridos' => $request->input('dias_corridos') === 'Não' ? 0 : 1,
+            'numero_notificacao' => $request->input('numero_notificacao'),
+            'observacao' => $request->input('observacao'),
+            'tipo_oficio' => $request->input('tipo_oficio'),
+            'tipo_documento' => $request->input('tipo_documento'),
+            'status_inicial' => $request->input('status_inicial'),
+            'status_final' => $request->input('status_final'),
+            'etapa' => $etapa,
+            'user_updated' => auth()->user()->id
+        ])->save();
 
-            $etapa = '';
+        //Cadastra os arquivos anexados
+        if (array_key_exists('anexos', $request->all())) {
+            if (count($request['anexos']) > 0) {
+                foreach ($request['anexos'] as $file) {
+                    if ($file->isValid()) {
+                        $tamanho = $file->getSize();
+                        $tipo = $file->getMimeType();
+                        $arqname = $file->getClientOriginalName();
+                        $caminho = $file->storeAs('anexos', $arqname);
 
-            if ($prazo < 0 && $request->input('etapa') != 'Finalizado') {
-                $etapa = 'Atrasado';
-            } else {
-                $etapa = $request->input('etapa');
-            }
-
-            $oficio->fill([
-                'destinatario_id' => $request->input('destinatario_id.id'),
-                'numero_oficio' => $request->input('numero_oficio'),
-                'assunto_oficio' => $request->input('assunto_oficio'),
-                'data_recebimento' => $request->input('data_recebimento'),
-                'data_emissao' => $request->input('data_emissao'),
-                'data_prazo' => $request->input('data_prazo'),
-                'prazo' => $prazo,
-                'dias_corridos' => $request->input('dias_corridos') == 'Não' ? 0 : 1,
-                'numero_notificacao' => $request->input('numero_notificacao'),
-                'observacao' => $request->input('observacao'),
-                'tipo_oficio' => $request->input('tipo_oficio'),
-                'tipo_documento' => $request->input('tipo_documento'),
-                'status_inicial' => $request->input('status_inicial'),
-                'status_final' => $request->input('status_final'),
-                'etapa' => $etapa,
-                'user_updated' => auth()->user()->id
-            ])->save();
-
-            //Cadastra os arquivos anexados
-            if (array_key_exists('anexos', $request->all())) {
-                if (count($request['anexos']) > 0) {
-                    foreach ($request['anexos'] as $file) {
-                        if ($file->isValid()) {
-                            $tamanho = $file->getSize();
-                            $tipo = $file->getMimeType();
-                            $arqname = $file->getClientOriginalName();
-                            $caminho = $file->storeAs('anexos', $arqname);
-
-                            AnexoOficio::create([
-                                'nome' => $arqname,
-                                'tipo' => $tipo,
-                                'tamanho' => $tamanho,
-                                'caminho' => $caminho,
-                                'oficio_id' => $oficio->id
-                            ]);
-                        }
+                        AnexoOficio::create([
+                            'nome' => $arqname,
+                            'tipo' => $tipo,
+                            'tamanho' => $tamanho,
+                            'caminho' => $caminho,
+                            'oficio_id' => $oficio->id
+                        ]);
                     }
                 }
             }
+        }
 
-            //Cadastra os interessados
-            $oficio->interessados()->delete();
-            foreach ($request['interessados'] as $interessado) {
-                $oficio->interessados()->create([
-                    'user_id' => $interessado['id']
+        //Cadastra os interessados
+        $oficio->interessados()->delete();
+        foreach ($request['interessados'] as $interessado) {
+            $oficio->interessados()->create([
+                'user_id' => $interessado['id']
+            ]);
+        }
+
+        //Cadastra os responsaveis
+        $oficio->responsaveis()->delete();
+        foreach ($request['responsaveis'] as $responsavel) {
+            $oficio->responsaveis()->create([
+                'user_id' => $responsavel['id']
+            ]);
+        }
+
+        //Cadastra os ofícios relacionados
+        $oficio->oficios_relacionados()->delete();
+        if(array_key_exists('oficio_relacionado', $request->all())) {
+            foreach ($request['oficio_relacionado'] as $oficio_relacionado) {
+                $oficio->oficios_relacionados()->create([
+                    'oficio_filho' => $oficio_relacionado['id']
                 ]);
             }
+        }
 
-            //Cadastra os responsaveis
-            $oficio->responsaveis()->delete();
-            foreach ($request['responsaveis'] as $responsavel) {
-                $oficio->responsaveis()->create([
-                    'user_id' => $responsavel['id']
-                ]);
-            }
-
-            //Cadastra os ofícios relacionados
-            $oficio->oficios_relacionados()->delete();
-            if(array_key_exists('oficio_relacionado', $request->all())) {
-                foreach ($request['oficio_relacionado'] as $oficio_relacionado) {
-                    $oficio->oficios_relacionados()->create([
-                        'oficio_filho' => $oficio_relacionado['id']
+        //Cadastra os ofícios externos
+        $oficio->oficios_externos()->delete();
+        if(array_key_exists('oficio_externo', $request->all())) {
+            foreach ($request['oficio_externo'] as $oficio_externo) {
+                if(gettype($oficio_externo) == 'string') {
+                    $oficio->oficios_externos()->create([
+                        'descricao' => $oficio_externo
                     ]);
-                }
-            }
-
-            //Cadastra os ofícios externos
-            $oficio->oficios_externos()->delete();
-            if(array_key_exists('oficio_externo', $request->all())) {
-                foreach ($request['oficio_externo'] as $oficio_externo) {
-                    if(gettype($oficio_externo) == 'string') {
-                        $oficio->oficios_externos()->create([
-                            'descricao' => $oficio_externo
-                        ]);
-                    } else {
-                        $oficio->oficios_externos()->create([
-                            'descricao' => $oficio_externo['label']
-                        ]);
-                    }
+                } else {
+                    $oficio->oficios_externos()->create([
+                        'descricao' => $oficio_externo['label']
+                    ]);
                 }
             }
         }
@@ -428,7 +372,7 @@ class OficioController extends Controller
         return redirect()->route('oficio.index');
     }
 
-    public function detail($id)
+    public function detail(int $id)
     {
         $oficio = Oficio::where('id', $id)
         ->with('destinatario', 'responsaveis.user:id,name', 'interessados.user:id,name', 'anexos', 'diretorias.diretoria:id,nome', 'oficios_externos', 'oficios_relacionados.oficio_filho:id,tipo_oficio,numero_oficio', 'cientes.user:id,name')
@@ -439,7 +383,7 @@ class OficioController extends Controller
         ]);
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         if ($id) {
             //Exclui os Anexos vinculados
@@ -506,9 +450,7 @@ class OficioController extends Controller
 
         $oficios = Oficio::with('destinatario')->with('responsaveis')->with('anexos')->get();
 
-        return redirect()->back()->with([
-            'response' => $oficios
-        ]);
+        return redirect()->back();
     }
 
     public function destroySelected(Request $request)
@@ -557,7 +499,7 @@ class OficioController extends Controller
         ->latest()
         ->get();
 
-        return redirect()->back()->with('response', $oficios);
+        return redirect()->back();
     }
 
     public function destroyAnexo($id)
@@ -568,7 +510,7 @@ class OficioController extends Controller
             $anexo->delete();
         }
 
-        return redirect()->back()->with('response', $anexo);
+        return redirect()->back();
     }
 
     public function ciencia($id)
@@ -584,7 +526,7 @@ class OficioController extends Controller
             ]);
         }
 
-        return redirect()->back()->with('response', $oficio);
+        return redirect()->back();
     }
 
     public function generatepdf($id)

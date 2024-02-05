@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Status;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -11,14 +12,14 @@ class UsuarioController extends Controller
 {
     public function index()
     {
-        $usuarios = User::all();
+        $usuarios = User::active()->get();
 
         return Inertia::render('Usuario/Index', [
             'usuarios' => $usuarios,
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'name' => 'required',
@@ -28,7 +29,7 @@ class UsuarioController extends Controller
             'password_reset' => 'required',
         ]);
 
-        $usuario = User::find($id);
+        $usuario = User::findOrFail($id);
 
         $usuario->name = $request->input('name');
         $usuario->email = $request->input('email');
@@ -41,17 +42,16 @@ class UsuarioController extends Controller
         $usuario->save();
 
 
-        return redirect()->back()->with('response', $usuario);
+        return redirect()->back();
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
-        $usuario = User::find($id);
+        $usuario = User::findOrFail($id);
 
-        $usuario->status = 0;
-
+        $usuario->status = Status::TRASH;
         $usuario->save();
 
-        return redirect()->back()->with('response', $usuario);
+        return redirect()->back();
     }
 }

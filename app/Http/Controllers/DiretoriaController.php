@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Status;
 use Illuminate\Http\Request;
 use App\Models\Diretoria;
-use App\Models\GroupUsers;
-use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 
 class DiretoriaController extends Controller
 {
     public function index()
     {
-        $diretorias = Diretoria::all();
+        $diretorias = Diretoria::active()->get();
 
         return Inertia::render('Diretoria/Index', [
             'diretorias' => $diretorias,
@@ -24,47 +23,42 @@ class DiretoriaController extends Controller
         $request->validate([
             'nome' => 'required',
             'status' => 'required'
-        ], [
-            '*.required' => 'Campo obrigatório.'
         ]);
 
-        //Cadastra os dados
-        $diretoria = Diretoria::create([
+        Diretoria::create([
             'group_id' => 1,
             'nome' => $request->input('nome'),
             'status' => $request->input('status.value'),
             'user_created' => auth()->user()->id
         ]);
 
-        return redirect()->back()->with('response', $diretoria);
+        return redirect()->back();
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $request->validate([
             'nome' => 'required',
             'status' => 'required'
-        ], [
-            '*.required' => 'Campo obrigatório.'
         ]);
 
-
-        //Atualiza os dados
         $diretoria = Diretoria::findOrFail($id);
         $diretoria->nome = $request->input('nome');
         $diretoria->status = $request->input('status.value');
         $diretoria->user_updated = auth()->user()->id;
         $diretoria->save();
 
-        return redirect()->back()->with('response', $diretoria);
+        return redirect()->back();
     }
 
-    public function destroy(Request $request)
+    public function destroy(int $id)
     {
-        $diretoria = Diretoria::findOrFail($request->id);
-        $diretoria->delete();
+        $diretoria = Diretoria::findOrFail($id);
+        $diretoria->status = Status::TRASH;
+        $diretoria->user_updated = auth()->user()->id;
+        $diretoria->save();
 
-        return redirect()->back()->with('response', $diretoria);
+        return redirect()->back();
 
     }
 
@@ -73,12 +67,12 @@ class DiretoriaController extends Controller
     {
         foreach($request->selected as $diretoria) {
             $diretoriaDelete = Diretoria::findOrFail($diretoria['id']);
-            $diretoriaDelete->delete();
+            $diretoriaDelete->status = Status::TRASH;
+            $diretoriaDelete->user_updated = auth()->user()->id;
+            $diretoriaDelete->save();
         }
 
-        $diretorias = Diretoria::all();
-
-        return redirect()->back()->with('respone', $diretorias);
+        return redirect()->back();
 
     }
 }
