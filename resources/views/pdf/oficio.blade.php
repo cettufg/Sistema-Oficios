@@ -114,7 +114,7 @@
                                 @endif
                             @endforeach
                         @endforeach
-                        
+
                     </div>
                 </td>
                 <td>
@@ -189,7 +189,7 @@
                                 <div>
                                     {{ $oficioExterno['descricao'] }}
                                 </div>
-                                @endforeach                        
+                                @endforeach
                             </div>
                         </td>
                     @endif

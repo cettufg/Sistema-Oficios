@@ -5,25 +5,12 @@ namespace App\Models;
 use App\Enums\Status;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Destinatario extends Model
+class Destinatario extends BaseModel
 {
-    use HasFactory;
-
-    protected $fillable = [
-        'nome',
-        'status',
-        'user_created',
-        'user_updated'
-    ];
-
-    public function oficios()
+    public function oficios(): HasMany
     {
         return $this->hasMany(Oficio::class, 'destinatario_id', 'id');
-    }
-
-    public function scopeActive($query)
-    {
-        return $query->where('status', Status::ATIVO);
     }
 }

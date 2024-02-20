@@ -7,7 +7,11 @@ use App\Http\Controllers\DestinatarioController;
 use App\Http\Controllers\DiretoriaController;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\CronController;
+use App\Models\Oficio;
+use App\Models\User;
+use App\Notifications\NovoOficio;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -53,7 +57,16 @@ Route::group([
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
 
-        Route::get('/teste', [OficioController::class, 'teste'])->name('oficio.teste');
+        Route::get('/teste', function(){
+            $oficio = Oficio::find(2);
+            $oficio->interessados()->each(function($interessado) use ($oficio){
+                Notification::route('mail', $interessado->user->email)->notify(new NovoOficio($oficio, $interessado->user));
+            });
+
+            $oficio->responsaveis()->each(function($responsavel) use ($oficio){
+                Notification::route('mail', $responsavel->user->email)->notify(new NovoOficio($oficio, $responsavel->user));
+            });
+        });
     });
 
 

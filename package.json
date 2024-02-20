@@ -22,6 +22,7 @@
     },
     "dependencies": {
         "@quasar/extras": "^1.15.11",
+        "puppeteer": "^22.1.0",
         "quasar": "^2.11.7"
     }
 }

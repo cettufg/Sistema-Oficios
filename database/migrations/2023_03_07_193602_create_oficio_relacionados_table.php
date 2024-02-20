@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('oficio_relacionados', function (Blueprint $table) {
-            $table->id();
             $table->unsignedBigInteger('oficio_pai')->nullable();
             $table->unsignedBigInteger('oficio_filho')->nullable();
-            $table->timestamps();
         });
     }
 

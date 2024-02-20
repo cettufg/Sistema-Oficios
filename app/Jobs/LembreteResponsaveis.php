@@ -4,25 +4,24 @@ namespace App\Jobs;
 
 use App\Models\User;
 use App\Models\Oficio;
-use App\Jobs\LembreteOficio;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Support\Facades\Notification;
 
 class LembreteResponsaveis implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $oficio;
-    private $reponsaveis;
+    private Oficio $oficio;
+    private array $reponsaveis;
 
     /**
      * Create a new job instance.
      */
-    public function __construct(Oficio $oficio, $reponsaveis)
+    public function __construct(Oficio $oficio, array $reponsaveis)
     {
         $this->oficio = $oficio;
         $this->reponsaveis = $reponsaveis;
@@ -37,7 +36,7 @@ class LembreteResponsaveis implements ShouldQueue
             $user = User::find($responsavel->user_id);
 
             if($user->status == '1') {
-                LembreteOficio::dispatch($this->oficio, $user->email);
+                Notification::route('mail', $user->email)->notify(new LembreteOficio($this->oficio, $user));
             }
         }
     }

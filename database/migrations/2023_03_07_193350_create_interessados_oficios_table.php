@@ -12,10 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('interessados_oficios', function (Blueprint $table) {
-            $table->id();
             $table->unsignedBigInteger('user_id')->nullable();
             $table->unsignedBigInteger('oficio_id')->nullable();
-            $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('oficio_id')->references('id')->on('oficios');
         });

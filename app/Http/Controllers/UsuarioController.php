@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\Status;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 
@@ -36,7 +36,7 @@ class UsuarioController extends Controller
         $usuario->is_admin = $request->input('is_admin.value');
         $usuario->status = $request->input('status.value');
         $usuario->password_reset = $request->input('password_reset.value');
-        if($request->password_reset['value'] == 1) {
+        if ($request->password_reset['value'] == 1) {
             $usuario->password = Hash::make('12345678');
         }
         $usuario->save();

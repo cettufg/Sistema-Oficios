@@ -4,23 +4,24 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class DiretoriaOficio extends Model
 {
-    use HasFactory;
+    public $timestamps = false;
 
     protected $fillable = [
         'diretoria_id',
         'oficio_id',
     ];
 
-    public function oficio()
+    public function oficio(): HasOne
     {
-        return $this->hasOne(Oficio::class, 'id', 'oficio_id');
+        return $this->hasOne(Oficio::class);
     }
 
-    public function diretoria()
+    public function diretoria(): HasOne
     {
-        return $this->hasOne(Diretoria::class, 'id', 'diretoria_id');
+        return $this->hasOne(Diretoria::class);
     }
 }

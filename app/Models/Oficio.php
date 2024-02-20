@@ -11,11 +11,11 @@ use App\Models\OficioRelacionado;
 use App\Models\OficioExterno;
 use App\Models\DiretoriaOficio;
 use App\Models\CienteOficio;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Oficio extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'destinatario_id',
         'numero_oficio',
@@ -36,42 +36,42 @@ class Oficio extends Model
         'user_updated'
     ];
 
-    public function destinatario()
+    public function destinatario(): HasOne
     {
         return $this->hasOne(Destinatario::class, 'id', 'destinatario_id');
     }
 
-    public function responsaveis()
+    public function responsaveis(): HasMany
     {
-        return $this->hasMany(ResponsavelOficio::class);
+        return $this->hasMany(ResponsavelOficio::class, 'oficio_id', 'id');
     }
 
-    public function interessados()
+    public function interessados(): HasMany
     {
-        return $this->hasMany(InteressadosOficio::class);
+        return $this->hasMany(InteressadosOficio::class, 'oficio_id', 'id');
     }
 
-    public function anexos()
+    public function anexos(): HasMany
     {
         return $this->hasMany(AnexoOficio::class);
     }
 
-    public function oficios_externos()
+    public function oficios_externos(): HasMany
     {
         return $this->hasMany(OficioExterno::class);
     }
 
-    public function diretorias()
+    public function diretorias(): HasMany
     {
         return $this->hasMany(DiretoriaOficio::class);
     }
 
-    public function cientes()
+    public function cientes(): HasMany
     {
         return $this->hasMany(CienteOficio::class);
     }
 
-    public function oficios_relacionados()
+    public function oficios_relacionados(): HasMany
     {
         return $this->hasMany(OficioRelacionado::class, 'oficio_pai', 'id');
     }
