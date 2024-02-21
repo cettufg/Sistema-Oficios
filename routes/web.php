@@ -1,16 +1,14 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\OficioController;
-use App\Http\Controllers\HomeController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\DestinatarioController;
 use App\Http\Controllers\DiretoriaController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OficioController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UsuarioController;
-use App\Http\Controllers\CronController;
 use App\Models\Oficio;
-use App\Models\User;
 use App\Notifications\NovoOficio;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +32,7 @@ Route::group([
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/teste', [HomeController::class, 'teste'])->name('home.teste');
 
     //Route group Ofício
     Route::group([
@@ -57,14 +56,16 @@ Route::group([
 
         Route::get('/pdf/{id}', [OficioController::class, 'generatepdf'])->name('oficio.generatepdf');
 
-        Route::get('/teste', function(){
+        Route::get('/teste', function () {
             $oficio = Oficio::find(2);
-            $oficio->interessados()->each(function($interessado) use ($oficio){
-                Notification::route('mail', $interessado->user->email)->notify(new NovoOficio($oficio, $interessado->user));
+            $oficio->interessados()->each(function ($interessado) use ($oficio) {
+                Notification::route('mail', $interessado->user->email)
+                            ->notify(new NovoOficio($oficio, $interessado->user));
             });
 
-            $oficio->responsaveis()->each(function($responsavel) use ($oficio){
-                Notification::route('mail', $responsavel->user->email)->notify(new NovoOficio($oficio, $responsavel->user));
+            $oficio->responsaveis()->each(function ($responsavel) use ($oficio) {
+                Notification::route('mail', $responsavel->user->email)
+                            ->notify(new NovoOficio($oficio, $responsavel->user));
             });
         });
     });
@@ -78,7 +79,8 @@ Route::group([
         Route::post('/', [DestinatarioController::class, 'store'])->name('destinatario.store');
         Route::put('/{id}', [DestinatarioController::class, 'update'])->name('destinatario.update');
         Route::delete('/{id}', [DestinatarioController::class, 'destroy'])->name('destinatario.destroy');
-        Route::post('/selected', [DestinatarioController::class, 'destroySelected'])->name('destinatario.destroySelected');
+        Route::post('/selected', [DestinatarioController::class, 'destroySelected'])
+             ->name('destinatario.destroySelected');
     });
 
     //Route group Diretoria

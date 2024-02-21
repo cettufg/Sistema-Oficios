@@ -2,15 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Destinatario;
-use App\Models\ResponsavelOficio;
-use App\Models\AnexoOficio;
-use App\Models\OficioRelacionado;
-use App\Models\OficioExterno;
-use App\Models\DiretoriaOficio;
-use App\Models\CienteOficio;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 

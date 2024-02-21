@@ -51,7 +51,8 @@ class OficioController extends Controller
         $oficiosBD = Oficio::with('destinatario', 'responsaveis.user:id,name', 'interessados.user:id,name', 'anexos', 'diretorias', 'oficios_externos', 'oficios_relacionados.oficio_filho:id,tipo_oficio,numero_oficio')
                            ->get();
 
-        $oficios = $oficiosBD->where('id', '<>', $id);
+
+        $oficios = $oficiosBD->where('id', '<>', $id)->toArray();
         $oficio = $oficiosBD->where('id', $id)->first();
 
         $usuarios = User::active()->get();
@@ -201,7 +202,7 @@ class OficioController extends Controller
         $usuarios = User::active()->get();
         $destinatarios = Destinatario::active()->get();
         $diretorias = Diretoria::active()->get();
-        $oficios = Oficio::all('id', 'numero_oficio', 'tipo_oficio');
+        $oficios = Oficio::all('id', 'numero_oficio', 'tipo_oficio')->toArray();
 
         return Inertia::render('Oficio/Crud', [
             'usuarios' => $usuarios,
