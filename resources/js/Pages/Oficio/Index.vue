@@ -633,7 +633,7 @@
                                     <Icon icon="mdi:eye-outline"/>
                                 </Link>
                                 <button
-                                    v-if="props.row.user_created == $page.props.auth.user.id || $page.props.auth.user.is_admin === true"
+                                    v-if="props.row.user_created == $page.props.auth.user.id || $page.props.auth.user.is_admin === 1"
                                     class="tw-text-slate-800 hover:tw-text-red-500 tw-text-sm tw-bg-white hover:tw-bg-slate-100 tw-border tw-border-slate-200 tw-rounded-r-lg tw-font-medium tw-px-4 tw-py-2 tw-inline-flex tw-space-x-1 tw-items-center"
                                     @click="destroyItem(props.row)">
                                     <Icon icon="uil:trash"/>
