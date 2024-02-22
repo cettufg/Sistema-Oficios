@@ -355,9 +355,10 @@
             });
         }
 
+
         if (filters.value.data != null) {
             rows.value = rows.value.filter((item, index) => {
-                if (filters.value.data != null) {
+                if (filters.value.data != null && item.data) {
                     if (filters.value.data.from) {
                         let dataCompare = new Date(item.data.split('/').reverse().join('-'));
                         let dataFromCompare = new Date(filters.value.data.from.split('/').join('-'));
