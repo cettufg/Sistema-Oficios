@@ -24,25 +24,92 @@ use Pdf;
 
 class OficioController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $oficiosQuery = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')->latest();
+        $page = $request->input('page', 1);
+        $perPage = $request->input('perPage', 10);
+        $filter_tipo_oficio = $request->input('tipo_oficio', '');
+        $filter_data = $request->input('data', '');
+        $filter_numero_oficio = $request->input('numero_oficio', '');
+        $filter_tipo_documento = $request->input('tipo_documento', '');
+        $filter_responsavel = $request->input('responsavel', '');
+        $filter_destinatario = $request->input('destinatario', '');
+        $filter_prazo = $request->input('prazo', '');
+        $filter_etapa = $request->input('etapa', '');
 
-        if (auth()->user()->is_admin !== 1) {
-            $logged_user = auth()->id();
-            $oficiosQuery->where(function ($query) use ($logged_user) {
-                $query->whereHas('responsaveis', function ($query) use ($logged_user) {
-                    $query->where('user_id', $logged_user);
-                })->orWhereHas('interessados', function ($query) use ($logged_user) {
-                    $query->where('user_id', $logged_user);
-                })->orWhere('user_created', $logged_user);
+        $oficios = Oficio::with('destinatario', 'responsaveis.user', 'interessados.user', 'anexos')
+                         ->latest()
+                         ->when(auth()->user()->is_admin !== 1, function ($query) {
+                             $query->where(function ($query) {
+                                 $query->whereHas('responsaveis', function ($query) {
+                                     $query->where('user_id', auth()->id());
+                                 })->orWhereHas('interessados', function ($query) {
+                                     $query->where('user_id', auth()->id());
+                                 })->orWhere('user_created', auth()->id());
+                             });
+                         });
+
+
+        if ($filter_tipo_oficio) {
+            $oficios = $oficios->where('tipo_oficio', $filter_tipo_oficio);
+        }
+
+        if ($filter_data) {
+            $filterDate = explode(' - ', $filter_data);
+            $dateInitial = date('Y-m-d', strtotime(str_replace('/', '-', $filterDate[0])));
+            $dateFinal = date('Y-m-d', strtotime(str_replace('/', '-', $filterDate[1])));
+
+            $oficios = $oficios->whereBetween('created_at', [$dateInitial, $dateFinal]);
+        }
+
+        if ($filter_numero_oficio) {
+            $oficios = $oficios->where('numero_oficio', 'like', "%$filter_numero_oficio%");
+        }
+
+        if ($filter_tipo_documento) {
+            $oficios = $oficios->where('tipo_documento', $filter_tipo_documento);
+        }
+
+        if ($filter_destinatario) {
+            $oficios = $oficios->whereHas('destinatario', function ($query) use ($filter_destinatario) {
+                $query->where('nome', 'like', "%$filter_destinatario%");
             });
         }
 
-        $oficios = $oficiosQuery->get();
+        if ($filter_responsavel) {
+            $oficios = $oficios->whereHas('responsaveis.user', function ($query) use ($filter_responsavel) {
+                $query->where('name', 'like', "%$filter_responsavel%");
+            });
+        }
+
+        if ($filter_prazo) {
+            $oficios = $oficios->where('prazo', $filter_prazo);
+        }
+
+        if ($filter_etapa) {
+            $oficios = $oficios->where('etapa', $filter_etapa);
+        }
+
+        $oficios = $oficios->paginate($perPage, ['*'], 'page', $page);
+
+        $tipo_oficio = Oficio::select('tipo_oficio')->distinct()->get();
+        $tipo_documento = Oficio::select('tipo_documento')->distinct()->get();
+        $numero_oficio = Oficio::select('numero_oficio')->distinct()->get();
+        $destinatario = Destinatario::select('nome')->distinct()->get();
+        $responsavel = User::select('name')->distinct()->get();
+        $prazo = Oficio::select('prazo')->distinct()->get();
+        $etapa = Oficio::select('etapa')->distinct()->get();
+
 
         return Inertia::render('Oficio/Index', [
             'oficios' => $oficios,
+            'tipo_oficio' => $tipo_oficio,
+            'tipo_documento' => $tipo_documento,
+            'numero_oficio' => $numero_oficio,
+            'destinatario' => $destinatario,
+            'responsavel' => $responsavel,
+            'prazo' => $prazo,
+            'etapa' => $etapa,
         ]);
     }
 
